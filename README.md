@@ -6,7 +6,20 @@ Projeto da equipe 01 da disciplina de Compiladores 1. O objetivo é traduzir um 
 
 ## Equipe
 
-| Avatar | Aluno | GitHub |
-| :---: | :--- | :--- | :--- |
-| <img src="https://github.com/GabrielDiniz12.png" width="40"> | Gabriel Diniz | [@GabrielDiniz12](https://github.com/GabrielDiniz12) |
-| <img src="https://github.com/gpaulovit.png" width="40"> | Paulo Vitor Gomes | [@ugpaulovit](https://github.com/gpaulovit) |
+<table align="center">
+  <tr>
+    <td align="center">
+      <a href="https://github.com/GabrielDiniz12">
+        <img src="https://github.com/GabrielDiniz12.png" width="120px;" alt="Foto do Gabriel Diniz"/><br>
+        <sub><b>Gabriel Diniz</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/gpaulovit">
+        <img src="https://github.com/gpaulovit.png" width="120px;" alt="Foto do Paulo Vitor"/><br>
+        <sub><b>Paulo Vitor Gomes</b></sub>
+      </a>
+    </td>
+    <!-- PARA ADICIONAR MAIS GENTE, COPIE DE UM <td align="center"> ATÉ O </td> E COLE AQUI EMBAIXO -->
+  </tr>
+</table>
