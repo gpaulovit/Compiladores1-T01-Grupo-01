@@ -1,0 +1,82 @@
+name: 🏃 Sprint
+description: Planejar ou acompanhar uma sprint da equipe
+title: "[Sprint N]: "
+labels: ["sprint"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use este template para abrir a issue de planejamento/acompanhamento de uma sprint.
+        Consulte o [cronograma](../../docs/cronograma.md) e a página da sprint correspondente em `docs/sprints/`.
+
+  - type: input
+    id: numero
+    attributes:
+      label: Número da sprint
+      placeholder: "Ex.: Sprint 2"
+    validations:
+      required: true
+
+  - type: input
+    id: periodo
+    attributes:
+      label: Período
+      placeholder: "Ex.: 07/09/2026 – 23/09/2026"
+    validations:
+      required: true
+
+  - type: input
+    id: marco
+    attributes:
+      label: Marco ao fim do período (se houver)
+      placeholder: "Ex.: P1 — 23/09/2026"
+    validations:
+      required: false
+
+  - type: textarea
+    id: objetivos
+    attributes:
+      label: Objetivos principais
+      description: Liste os objetivos da sprint (referenciar docs/sprints/sprint-N.md).
+      placeholder: |
+        - Objetivo 1
+        - Objetivo 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: entregas
+    attributes:
+      label: Principais entregas
+      placeholder: |
+        - [ ] Entrega 1
+        - [ ] Entrega 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: tarefas
+    attributes:
+      label: Tarefas e responsáveis
+      description: Divida as tarefas entre os membros da equipe.
+      placeholder: |
+        - [ ] Tarefa — @responsavel
+        - [ ] Tarefa — @responsavel
+    validations:
+      required: false
+
+  - type: textarea
+    id: riscos
+    attributes:
+      label: Riscos e bloqueios
+      description: Algo que pode atrasar ou impedir a entrega da sprint?
+    validations:
+      required: false
+
+  - type: textarea
+    id: retro
+    attributes:
+      label: Retrospectiva (preencher ao final da sprint)
+      description: O que funcionou, o que não funcionou, ajustes para a próxima sprint.
+    validations:
+      required: false

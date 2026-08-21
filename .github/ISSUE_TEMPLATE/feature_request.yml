@@ -1,0 +1,74 @@
+name: ✨ Feature
+description: Propor uma nova funcionalidade ou melhoria para o compilador/documentação
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use este template para propor novas funcionalidades, construções de linguagem ou melhorias no projeto.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área afetada
+      options:
+        - Linguagem-fonte (Mini-C)
+        - Linguagem-alvo (TypeScript gerado)
+        - Análise léxica (Flex)
+        - Análise sintática (Bison)
+        - AST / Tabela de símbolos
+        - Análise semântica
+        - Geração de código
+        - Documentação (GitPage)
+        - Ferramental/CI
+        - Outro
+    validations:
+      required: true
+
+  - type: textarea
+    id: problema
+    attributes:
+      label: Problema ou motivação
+      description: Que necessidade ou limitação esta feature resolve?
+      placeholder: Ex.- Atualmente o Mini-C não suporta laços 'for', o que impede...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposta
+    attributes:
+      label: Solução proposta
+      description: Descreva a funcionalidade desejada. Se envolver sintaxe nova, inclua exemplos de código Mini-C e o TypeScript esperado como saída.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Alternativas consideradas
+      description: Outras formas de resolver o problema que foram avaliadas (opcional).
+    validations:
+      required: false
+
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Critérios de aceite
+      description: O que precisa estar verdadeiro para considerar esta feature concluída?
+      placeholder: |
+        - [ ] Gramática atualizada no arquivo .y
+        - [ ] Regras léxicas atualizadas no arquivo .l
+        - [ ] Testes cobrindo o novo caso
+        - [ ] Documentação atualizada
+    validations:
+      required: false
+
+  - type: input
+    id: sprint
+    attributes:
+      label: Sprint alvo (opcional)
+      placeholder: "Ex.: Sprint 3"
+    validations:
+      required: false

@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Documentação do projeto (GitPage)
+    url: https://gpaulovit.github.io/Compiladores1-T01-Grupo-01/
+    about: Consulte a documentação completa antes de abrir uma issue.

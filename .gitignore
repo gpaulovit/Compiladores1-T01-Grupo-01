@@ -10,7 +10,7 @@ y.tab.c
 y.tab.h
 *.output
 
-# Saídas geradas pelo seu compilador (para não sujar o git)
+# Saídas geradas pelo compilador
 *.ts
 saida.ts
 
@@ -18,3 +18,5 @@ saida.ts
 .vscode/
 .idea/
 .DS_Store
+
+node_modules

@@ -1,0 +1,44 @@
+name: 📋 Generalista
+description: Tarefa, dúvida, discussão ou qualquer outro assunto que não se encaixa nos templates de Bug/Feature/Sprint
+title: ""
+labels: []
+body:
+  - type: dropdown
+    id: tipo
+    attributes:
+      label: Tipo
+      options:
+        - Tarefa
+        - Dúvida
+        - Discussão/Decisão de design
+        - Débito técnico
+        - Documentação
+        - Outro
+    validations:
+      required: true
+
+  - type: textarea
+    id: descricao
+    attributes:
+      label: Descrição
+      description: Descreva a tarefa, dúvida ou assunto a ser discutido.
+    validations:
+      required: true
+
+  - type: textarea
+    id: contexto
+    attributes:
+      label: Contexto adicional
+      description: Links, referências ou issues/PRs relacionados.
+    validations:
+      required: false
+
+  - type: textarea
+    id: checklist
+    attributes:
+      label: Checklist (se aplicável)
+      placeholder: |
+        - [ ] Passo 1
+        - [ ] Passo 2
+    validations:
+      required: false
