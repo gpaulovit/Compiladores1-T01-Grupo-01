@@ -1,40 +1,35 @@
-# Sprint 4 — Semântica & Código Intermediário
+# Sprint 5 — Otimização & Código Final
 
-**Período:** 15/10/2026 – 04/11/2026
-**Marco:** [P2 / Entrega Final](../p2.md) em 04/11/2026 — 23:59
+**Período:** 05/11/2026 – 29/11/2026
 **Status:** `TODO: Planejado / Em andamento / Concluído`
+
+> Voltado para a entrega final do compilador da equipe, esta sprint é dedicada a otimizações, ajustes finais, testes integrados e **preparação para as entrevistas** de 30/11.
 
 ## Objetivos Principais
 
-- Concluir a análise semântica principal.
-- Implementar a geração de código intermediário (código de três endereços ou equivalente).
-- Preparar o ponto de controle **P2**, que para esta equipe coincide com a **entrega final** do compilador no GitHub.
+- Introduzir e testar **otimizações** no código intermediário (opcional, mas recomendável).
+- Consolidar a **geração de código final** em TypeScript.
+- Realizar **testes integrados** e correções de bugs remanescentes.
+- Preparar a equipe para as entrevistas finais (todos devem dominar o funcionamento e as decisões técnicas do compilador).
 
 ## Principais Entregas
 
-- Analisador semântico robusto (tratando coerência de tipos, escopos, variáveis).
-- Módulo de geração de código intermediário, ainda que sem otimizações avançadas.
-- Formulário do P2 preenchido: <https://forms.office.com/r/gNG6Eb7e71>
-- Apresentação do ponto de controle P2.
-- Repositório no GitHub organizado e acessível, já que o professor acessa o repositório no momento da entrega final.
+- Módulo de otimização básico (remoção de código morto, simplificação de expressões).
+- Compilador "rodando de ponta a ponta" em exemplos representativos, com a saída TypeScript validada.
+- Documentação técnica atualizada (estrutura do projeto, decisões técnicas, problemas encontrados e soluções adotadas).
 
 ## Tarefas e Atividades
 
-1. Refinar a análise semântica para lidar com construções mais complexas do Mini-C (funções, estruturas, se previstas no escopo).
-2. Criar o gerador de código intermediário: ao percorrer a AST, traduzir cada construção para instruções de três endereços (ou outra representação escolhida).
-3. Configurar testes: produzir exemplos que gerem instruções intermediárias e verificar a consistência.
-4. Preparar a apresentação do P2 (foco no que evoluiu desde o P1) e garantir o preenchimento do formulário.
-
-## O que o P2 exige (ver [página do P2](../p2.md))
-
-- Funcionalidades principais desenvolvidas
-- Melhorias desde o P1
-- Ajustes no planejamento
+1. Projetar e implementar otimizações simples: remoção de instruções redundantes, constant folding etc.
+2. Revisar e corrigir o tradutor final (código intermediário → TypeScript).
+3. Testar em múltiplos programas de exemplo para verificar a integridade de ponta a ponta (léxica → execução final).
+4. Atualizar a documentação do repositório (estrutura, decisões técnicas, sprints, problemas e soluções).
+5. Ensaiar a entrevista: cada membro deve entender e saber explicar qualquer parte do projeto.
 
 ## Observações
 
-- O trabalho entra na parte central do compilador — dedicar tempo às quartas-feiras para integrar código e resolver conflitos.
-- Nesta fase pode ocorrer a saída de algum integrante por motivos externos; planejar redistribuição de tarefas caso aconteça.
+- Manter commits frequentes e versões estáveis, já que qualquer problema de última hora pode ser mitigado com bom histórico de commits.
+- Sem sprint de "correção" antes da entrevista — as entrevistas ocorrem no dia seguinte ao fim desta sprint (30/11), então o polimento final acontece aqui. Ver [Sprint 6](sprint-6.md).
 
 ## Retrospectiva
 

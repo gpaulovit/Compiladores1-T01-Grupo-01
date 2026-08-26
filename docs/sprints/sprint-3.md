@@ -1,32 +1,33 @@
-# Sprint 1 — Formação & Definição da Linguagem
+# Sprint 3 — Sintático & Semântica Inicial
 
-**Período:** 24/08/2026 – 06/09/2026
+**Período:** 24/09/2026 – 14/10/2026
 **Status:** `TODO: Planejado / Em andamento / Concluído`
 
 ## Objetivos Principais
 
-- Formar a equipe e organizar o ambiente de trabalho (repositório, ferramentas, Flex, Bison etc.).
-- Definir a linguagem-fonte do compilador — Mini-C (sintaxe e semântica básica).
-- Elaborar a primeira versão da gramática formal (livre de contexto).
+- Evoluir o **analisador sintático** com novas produções gramaticais do Mini-C.
+- Iniciar a estrutura interna do compilador (AST, tabela de símbolos).
+- Dar os primeiros passos na **análise semântica** (tipos de variáveis, escopos).
 
 ## Principais Entregas
 
-- Documento inicial descrevendo a linguagem (tokens, estruturas, exemplos de código).
-- Protótipo de gramática reconhecida pelo Bison (ainda não funcional, mas já planejada).
-- Ambiente configurado e testado (cada membro deve conseguir compilar e rodar um "hello world" do Flex/Bison).
+- Parser com cobertura mais ampla da gramática do Mini-C (estruturas de controle, declarações etc.).
+- Estruturas de dados (AST e tabela de símbolos) definidas e parcialmente implementadas.
+- Analisador semântico inicial identificando erros básicos (variáveis não declaradas, incompatibilidade de tipos simples).
 
 ## Tarefas e Atividades
 
-1. Definir o escopo do Mini-C: quais construções essenciais da linguagem C serão suportadas.
-2. Configurar o repositório no GitHub e adicionar todos os membros (incluir o professor conforme instruções da disciplina).
-3. Configurar as ferramentas: Flex, Bison e compilador C/C++ no ambiente local de cada integrante.
-4. Criar a gramática inicial no Bison (arquivo `.y`) e o arquivo de regras léxicas no Flex (arquivo `.l`), ainda que incompletos.
+1. Estender as regras gramaticais no Bison, cobrindo as principais construções do Mini-C.
+2. Criar e popular a tabela de símbolos durante a análise sintática.
+3. Construir a AST (árvore sintática abstrata) para facilitar a análise semântica e as etapas seguintes.
+4. Implementar verificação de tipos e de escopo simples, reportando erros quando algo estiver fora das regras da linguagem.
 
 ## Observações
 
-- Aproveitar as quartas-feiras para a daily meeting rápida e verificação de tarefas pendentes.
-- Garantir que todos estejam confortáveis com Git/GitHub para evitar atrasos futuros.
+- As quartas-feiras continuam essenciais para o trabalho prático no compilador.
+- Manter testes de unidade (pequenos trechos de código-fonte Mini-C) para validar o parser e a semântica.
+- Já começar a planejar a geração de código intermediário, que será o foco da Sprint 4.
 
 ## Retrospectiva
 
-`TODO: preencher ao final da sprint — o que funcionou, o que não funcionou, ajustes para a próxima sprint.`
+`TODO: preencher ao final da sprint.`
