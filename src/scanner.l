@@ -42,6 +42,7 @@
 "-"         { printf("Token: MINUS (Lexema: %s)\n", yytext); }
 "*"         { printf("Token: TIMES (Lexema: %s)\n", yytext); }
 "/"         { printf("Token: DIVIDE (Lexema: %s)\n", yytext); }
+"%"         { printf("Token: MOD (Lexema: %s)\n", yytext); }
 
     /* 7. DELIMITADORES E PONTUAÇÃO */
 "{"         { printf("Token: LBRACE (Lexema: %s)\n", yytext); }
