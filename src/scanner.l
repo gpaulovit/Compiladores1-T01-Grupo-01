@@ -11,7 +11,24 @@
 
 %%
 
-    /* 1. OPERADORES DE INCREMENTO E DECREMENTO */
+    /* 1. PALAVRAS RESERVADAS (TIPOS DE DADOS) */
+"int"       { printf("Token: INT (Lexema: %s)\n", yytext); }
+"float"     { printf("Token: FLOAT (Lexema: %s)\n", yytext); }
+"void"      { printf("Token: VOID (Lexema: %s)\n", yytext); }
+
+    /* 2. PALAVRAS RESERVADAS (ESTRUTURAS DE CONTROLE E E/S) */
+"if"        { printf("Token: IF (Lexema: %s)\n", yytext); }
+"else"      { printf("Token: ELSE (Lexema: %s)\n", yytext); }
+"while"     { printf("Token: WHILE (Lexema: %s)\n", yytext); }
+"for"       { printf("Token: FOR (Lexema: %s)\n", yytext); }
+"do"        { printf("Token: DO (Lexema: %s)\n", yytext); }
+"return"    { printf("Token: RETURN (Lexema: %s)\n", yytext); }
+"print"     { printf("Token: PRINT (Lexema: %s)\n", yytext); }
+
+    /* 3. IDENTIFICADORES (deve vir DEPOIS das palavras reservadas) */
+[a-zA-Z_][a-zA-Z0-9_]* { printf("Token: IDENTIFIER (Lexema: %s)\n", yytext); }
+
+    /* 4. OPERADORES DE INCREMENTO E DECREMENTO */
 "++"        { printf("Token: INC (Lexema: %s)\n", yytext); }
 "--"        { printf("Token: DEC (Lexema: %s)\n", yytext); }
 
