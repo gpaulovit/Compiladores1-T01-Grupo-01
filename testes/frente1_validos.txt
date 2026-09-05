@@ -1,0 +1,4 @@
+int float void
+if else while for do return print
+soma total_1 _contador valorX
+int x = 10;

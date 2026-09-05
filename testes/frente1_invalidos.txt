@@ -1,0 +1,4 @@
+@variavel
+$preco
+#hashtag
+salário
