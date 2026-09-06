@@ -8,6 +8,14 @@
 %}
 
 %option noyywrap
+%option yylineno
+
+/* DEFINIÇÕES DE EXPRESSÕES REGULARES */
+DIGITO      [0-9]
+INT_LIT     {DIGITO}+
+FLOAT_LIT   {DIGITO}+\.{DIGITO}+
+CHAR_LIT    \'([^'\\\n]|\\.)\'
+STRING_LIT  \"([^"\\\n]|\\.)*\"
 
 %%
 
