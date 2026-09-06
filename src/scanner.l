@@ -78,7 +78,7 @@ STRING_LIT  \"([^"\\\n]|\\.)*\"
 [ \t\n\r]+  { /* ignorar */ }
 
     /* Regra de erro léxico para caracteres inválidos */
-.           { printf("ERRO LÉXICO: Caractere desconhecido '%s'\n", yytext); }
+.           { printf("ERRO LÉXICO (Linha %d): Caractere desconhecido '%s'\n", yylineno, yytext); }
 
 %%
 
