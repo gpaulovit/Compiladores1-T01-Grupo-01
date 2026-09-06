@@ -70,6 +70,10 @@ STRING_LIT  \"([^"\\\n]|\\.)*\"
 ";"         { printf("Token: SEMI (Lexema: %s)\n", yytext); }
 ","         { printf("Token: COMMA (Lexema: %s)\n", yytext); }
 
+    /* TRATAMENTO DE ERROS LÉXICOS PARA LITERAIS NÃO FECHADOS */
+\"([^"\\\n]|\\.)*   { printf("ERRO LÉXICO (Linha %d): String não fechada '%s'\n", yylineno, yytext); }
+'([^'\\\n]|\\.)*    { printf("ERRO LÉXICO (Linha %d): Char não fechado '%s'\n", yylineno, yytext); }
+
     /* Ignora espaços em branco, tabulações e quebras de linha */
 [ \t\n\r]+  { /* ignorar */ }
 
