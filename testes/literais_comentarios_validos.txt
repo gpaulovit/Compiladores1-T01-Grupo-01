@@ -1,0 +1,32 @@
+// Comentário de linha deve ser ignorado completamente
+
+/* 
+   Comentário de bloco de múltiplas linhas
+   deve ser ignorado também
+*/
+
+/* Comentário de bloco inline */
+
+// Literais Inteiros
+0
+10
+452
+
+// Literais Float
+3.14
+0.5
+10.0
+
+// Literais de Char
+'a'
+'5'
+'\n'
+'\\'
+'\''
+
+// Literais de String
+"Ola Mundo"
+"Total = "
+"String com quebra \n e tabulação \t"
+"String com aspas \"escapadas\""
+""

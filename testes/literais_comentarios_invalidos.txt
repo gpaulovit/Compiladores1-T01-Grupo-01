@@ -1,0 +1,11 @@
+// String que esqueceram de fechar no fim da linha
+"Esta string nao foi fechada
+
+// Char que esqueceram de fechar
+'a
+
+// Char com mais de um caractere ou sem fechamento adequado
+'abc'
+
+// Float mal formatado (ponto solto sem dígitos depois)
+12.
