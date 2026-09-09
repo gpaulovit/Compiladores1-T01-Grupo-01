@@ -56,6 +56,48 @@ Subconjunto de C definido pela equipe na Sprint 1. Escopo fechado em 02/09/2026.
 
 - Comentários de linha (`//`) e de bloco (`/* */`), ignorados pelo analisador léxico.
 
+##### Especificação de Símbolos Fixos (Operadores e Delimitadores)
+
+Como parte do desenvolvimento da fase léxica (Frente 1: Operadores e Delimitadores), foi mapeada a especificação formal de todos os símbolos exatos suportados pela linguagem Mini-C. Estes símbolos literais exigem reconhecimento fixo no arquivo do Flex (`scanner.l`) e geram os seguintes tokens:
+
+##### Tabela de Operadores
+| Categoria | Lexema (Símbolo) | Token Gerado | Descrição | Exemplo Mini-C |
+| :--- | :---: | :--- | :--- | :--- |
+| **Aritméticos** | `+` | `PLUS` | Adição | `a + b` |
+| | `-` | `MINUS` | Subtração / Negação Unária | `a - b` / `-a` |
+| | `*` | `TIMES` | Multiplicação | `a * b` |
+| | `/` | `DIVIDE` | Divisão | `a / b` |
+| | `%` | `MOD` | Resto da divisão | `a % b` |
+| **Incremento/Decremento** | `++` | `INC` | Incremento unitário | `i++` |
+| | `--` | `DEC` | Decremento unitário | `i--` |
+| **Atribuição** | `=` | `ASSIGN` | Atribuição simples | `x = 10` |
+| **Atribuição Composta** | `+=` | `ADD_ASSIGN` | Atribuição com adição | `total += 5` |
+| | `-=` | `SUB_ASSIGN` | Atribuição com subtração | `total -= 2` |
+| | `*=` | `MUL_ASSIGN` | Atribuição com multiplicação| `total *= 2` |
+| | `/=` | `DIV_ASSIGN` | Atribuição com divisão | `total /= 2` |
+| **Relacionais** | `==` | `EQ` | Igualdade | `i == 2` |
+| | `!=` | `NE` | Diferença | `i != 2` |
+| | `<` | `LT` | Menor que | `i < 5` |
+| | `<=` | `LE` | Menor ou igual a | `i <= 5` |
+| | `>` | `GT` | Maior que | `i > 0` |
+| | `>=` | `GE` | Maior ou igual a | `i >= 0` |
+| **Lógicos** | `&&` | `AND` | Conjunção lógica (E) | `a && b` |
+| | `||` | `OR` | Disjunção lógica (OU) | `a \|\| b` |
+| | `!` | `NOT` | Negação lógica | `!valido` |
+
+##### Tabela de Delimitadores e Pontuação
+| Lexema | Token Gerado | Descrição | Finalidade no Mini-C |
+| :---: | :--- | :--- | :--- |
+| `{` | `LBRACE` | Abre chaves | Delimita início de escopo de funções ou blocos condicionais/laços. |
+| `}` | `RBRACE` | Fecha chaves | Delimita fim de escopo de funções ou blocos condicionais/laços. |
+| `(` | `LPAREN` | Abre parênteses | Envolve parâmetros de funções e condições de laços/condicionais. |
+| `)` | `RPAREN` | Fecha parênteses | Envolve parâmetros de funções e condições de laços/condicionais. |
+| `;` | `SEMI` | Ponto e vírgula | Encerra instruções e declarações obrigatórias. |
+| `,` | `COMMA` | Vírgula | Separa argumentos em funções e listas de variáveis. |
+
+##### Decisões de Precedência Léxica
+Para assegurar que símbolos compostos não sejam erroneamente quebrados em múltiplos tokens simples (por exemplo, impedir que o operador de igualdade `==` seja interpretado como duas atribuições simples `=`), as regras no Flex foram ordenadas de forma que os padrões mais longos e específicos (como `==`, `!=`, `+=`, `++`) sejam declarados **antes** de operadores mais curtos ou genéricos (como `=`, `+`, `-`).
+
 ### Fora de escopo (decisão consciente)
 
 Os itens abaixo foram avaliados e descartados para este projeto, para manter o escopo executável dentro do cronograma (Sprint 4 — codegen intermediário até 04/11/2026) e por não se encaixarem bem no alvo TypeScript:
