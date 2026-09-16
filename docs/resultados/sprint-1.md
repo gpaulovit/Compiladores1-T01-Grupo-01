@@ -14,8 +14,7 @@ O trabalho da sprint foi dividido em três frentes (issues), cada uma correspond
 |---|---|---|---|
 | Frente 1 — Palavras reservadas, identificadores e tipos | [#2](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/2) | [#6](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/6) | ✅ Concluída |
 | Frente 2 — Operadores, delimitadores e literais | [#3](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/3) | [#5](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/5) | ✅ Concluída |
-| Frente 3 — Definição do Mini-C e documentação da linguagem | [#4](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/4) | — (direto em `main`) | 🔄 Em aberto — escopo já documentado em [Sobre o Projeto](../projeto.md#linguagem-fonte-mini-c), issue segue aberta para revisão final da equipe |
-
+| Frente 3 — Definição do Mini-C e documentação da linguagem | [#4](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/4) | [#4](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/4) | [#7](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/7) | ✅ Concluída |
 ## Entregas
 
 ### 1. Definição do escopo do Mini-C
