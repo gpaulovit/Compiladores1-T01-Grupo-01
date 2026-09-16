@@ -8,11 +8,11 @@
 
 ## Tipo de mudança
 
-- [ ] 🐛 Correção de bug
-- [ ] ✨ Nova funcionalidade
-- [ ] 📝 Documentação
-- [ ] ♻️ Refatoração (sem mudança de comportamento)
-- [ ] 🔧 Configuração/ferramental (build, CI, etc.)
+- [ ]  Correção de bug
+- [ ]  Nova funcionalidade
+- [ ]  Documentação
+- [ ]  Refatoração (sem mudança de comportamento)
+- [ ]  Configuração/ferramental (build, CI, etc.)
 
 ## Etapa do compilador afetada
 

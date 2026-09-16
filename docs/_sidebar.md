@@ -11,6 +11,9 @@
   - [Sprint 5 — Otimização & Código Final](sprints/sprint-5.md)
   - [Sprint 6 — Entrevistas & Encerramento](sprints/sprint-6.md)
 
+- **Resultados**
+  - [Sprint 1](resultados/sprint-1.md)
+
 - **Pontos de Controle**
   - [P1](p1.md)
   - [P2 / Entrega Final](p2.md)

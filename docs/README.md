@@ -17,6 +17,7 @@ Projeto da equipe 01 da disciplina de **Compiladores 1** (Prof. Dr. Sergio Antô
 | [Sobre o Projeto](projeto.md) | Escopo, gramática e arquitetura do compilador |
 | [Cronograma & Marcos](cronograma.md) | Datas de P1, P2/Entrega Final e entrevistas |
 | Sprints 1–6 | Planejamento sprint a sprint (menu lateral) |
+| Resultados | O que foi de fato entregue em cada sprint, com links para PRs e código (menu lateral) |
 | [P1](p1.md) / [P2 / Entrega Final](p2.md) | O que é exigido em cada ponto de controle |
 | [Referências do Professor](referencias/proposta-trabalho.md) | Proposta de trabalho e guia do compilador, na íntegra |
 

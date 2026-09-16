@@ -1,7 +1,8 @@
 # Sprint 1 — Formação & Definição da Linguagem
 
 **Período:** 24/08/2026 – 06/09/2026
-**Status:** `TODO: Planejado / Em andamento / Concluído`
+**Status:** Concluído
+**Resultados:** [Ver o que foi entregue →](../resultados/sprint-1.md)
 
 ## Objetivos Principais
 
