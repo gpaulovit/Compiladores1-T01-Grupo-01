@@ -1,12 +1,12 @@
 # Resultados — Sprint 1
 
 **Período:** 24/08/2026 – 06/09/2026
-**Sprint:** [Sprint 1 — Formação & Definição da Linguagem](../sprints/sprint-1.md)
+**Sprint:** [Sprint 1 - Formação & Definição da Linguagem](../sprints/sprint-1.md)
 **Issues:** [#2](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/2) · [#3](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/3) · [#4](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/4)
 
 ## Resumo
 
-Além do planejamento previsto (formação da equipe, definição do escopo do Mini-C), a equipe adiantou entregas antes previstas apenas para a Sprint 2: o **analisador léxico completo** (Flex) do Mini-C, cobrindo a totalidade dos tokens definidos no escopo — palavras reservadas, identificadores, operadores, delimitadores, literais, comentários e erros léxicos.
+Além do planejamento previsto (formação da equipe, definição do escopo do Mini-C), a equipe adiantou entregas antes previstas apenas para a Sprint 2: o **analisador léxico completo** (Flex) do Mini-C, cobrindo a totalidade dos tokens definidos no escopo, palavras reservadas, identificadores, operadores, delimitadores, literais, comentários e erros léxicos.
 
 O trabalho da sprint foi dividido em três frentes (issues), cada uma correspondendo a um PR:
 
@@ -14,7 +14,8 @@ O trabalho da sprint foi dividido em três frentes (issues), cada uma correspond
 |---|---|---|---|
 | Frente 1 — Palavras reservadas, identificadores e tipos | [#2](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/2) | [#6](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/6) | ✅ Concluída |
 | Frente 2 — Operadores, delimitadores e literais | [#3](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/3) | [#5](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/5) | ✅ Concluída |
-| Frente 3 — Definição do Mini-C e documentação da linguagem | [#4](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/4) | [#4](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/4) | [#7](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/7) | ✅ Concluída |
+| Frente 3 — Definição do Mini-C e documentação da linguagem | [#4](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/4) | [#7](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/7) | ✅ Concluída |
+
 ## Entregas
 
 ### 1. Definição do escopo do Mini-C
@@ -46,18 +47,16 @@ A tabela completa de tokens gerados por cada símbolo está em [Sobre o Projeto 
 ## Como rodar localmente
 
 ```bash
-flex -o lex.yy.c src/scanner.l
-gcc lex.yy.c -o scanner
+make lex-debug
 
-./scanner < testes/op_validos_lexico.txt
-./scanner < testes/op_invalidos_lexico.txt
-./scanner < testes/literais_comentarios_validos.txt
-./scanner < testes/literais_comentarios_invalidos.txt
-./scanner < testes/frente1_validos.txt
-./scanner < testes/frente1_invalidos.txt
+./build/lex_debug < testes/op_validos_lexico.txt
+./build/lex_debug < testes/op_invalidos_lexico.txt
+./build/lex_debug < testes/literais_comentarios_validos.txt
+./build/lex_debug < testes/literais_comentarios_invalidos.txt
+./build/lex_debug < testes/frente1_validos.txt
+./build/lex_debug < testes/frente1_invalidos.txt
 ```
 
 ## Próximos passos (Sprint 2)
 
-- Fechar a issue [#4](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/4) (revisão final da definição da linguagem).
 - Iniciar a análise sintática (Bison), conforme [Sprint 2](../sprints/sprint-2.md).

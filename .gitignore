@@ -9,6 +9,7 @@ lex.yy.c
 y.tab.c
 y.tab.h
 *.output
+build/
 
 # Saídas geradas pelo compilador
 *.ts
