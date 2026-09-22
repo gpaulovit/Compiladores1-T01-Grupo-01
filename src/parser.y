@@ -44,6 +44,24 @@ extern int yylineno;
 /* Delimitadores */
 %token LBRACE RBRACE LPAREN RPAREN SEMI COMMA
 
+/* ------------------------------------------------------------------------- */
+/* PRECEDÊNCIA E ASSOCIATIVIDADE                                             */
+/* ------------------------------------------------------------------------- */
+/* Para resolver o conflito shift/reduce do "dangling else" */
+%nonassoc LOWER_THAN_ELSE
+%nonassoc ELSE
+
+/* Precedência de operadores (da menor para a maior) */
+%right ASSIGN ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN
+%left OR
+%left AND
+%left EQ NE
+%left LT GT LE GE
+%left PLUS MINUS
+%left TIMES DIVIDE MOD
+%right NOT
+%left INC DEC
+
 %%
 
 programa
