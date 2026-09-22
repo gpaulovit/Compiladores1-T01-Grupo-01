@@ -1,14 +1,21 @@
 /* FGA0003 - Compiladores 1 */
 /* Curso de Engenharia de Software */
 /* Universidade de Brasília (UnB) */
-/* Fase Léxica - Operadores e Delimitadores do Mini-C */
+/* Fase Léxica - Analisador léxico do Mini-C, integrado ao Bison */
 
 %{
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "y.tab.h"   /* códigos de token e YYSTYPE */
+
+/* Quantidade de erros léxicos encontrados; lido por src/main.c */
+int lex_errors = 0;
 %}
 
 %option noyywrap
 %option yylineno
+%option noinput nounput
 
 /* DEFINIÇÕES DE EXPRESSÕES REGULARES */
 DIGITO      [0-9]
@@ -24,83 +31,78 @@ STRING_LIT  \"([^"\\\n]|\\.)*\"
 "/*"([^*]|\*+[^/*])*"*"+"/" { /* Ignora comentário de bloco */ }
 
     /* 2. LITERAIS NUMÉRICOS E DE TEXTO */
-{FLOAT_LIT}  { printf("Token: FLOAT_LITERAL (Lexema: %s)\n", yytext); }
-{INT_LIT}    { printf("Token: INT_LITERAL (Lexema: %s)\n", yytext); }
-{CHAR_LIT}   { printf("Token: CHAR_LITERAL (Lexema: %s)\n", yytext); }
-{STRING_LIT} { printf("Token: STRING_LITERAL (Lexema: %s)\n", yytext); }
+{FLOAT_LIT}  { yylval.fval = atof(yytext);  return FLOAT_LITERAL; }
+{INT_LIT}    { yylval.ival = atoi(yytext);  return INT_LITERAL; }
+{CHAR_LIT}   { yylval.sval = strdup(yytext); return CHAR_LITERAL; }
+{STRING_LIT} { yylval.sval = strdup(yytext); return STRING_LITERAL; }
 
-    /* 3. OPERADORES DE INCREMENTO E DECREMENTO */
-    /* 1. PALAVRAS RESERVADAS (TIPOS DE DADOS) */
-"int"       { printf("Token: INT (Lexema: %s)\n", yytext); }
-"float"     { printf("Token: FLOAT (Lexema: %s)\n", yytext); }
-"void"      { printf("Token: VOID (Lexema: %s)\n", yytext); }
+    /* 3. PALAVRAS RESERVADAS (TIPOS DE DADOS) */
+"int"       { return INT; }
+"float"     { return FLOAT; }
+"void"      { return VOID; }
 
-    /* 2. PALAVRAS RESERVADAS (ESTRUTURAS DE CONTROLE E E/S) */
-"if"        { printf("Token: IF (Lexema: %s)\n", yytext); }
-"else"      { printf("Token: ELSE (Lexema: %s)\n", yytext); }
-"while"     { printf("Token: WHILE (Lexema: %s)\n", yytext); }
-"for"       { printf("Token: FOR (Lexema: %s)\n", yytext); }
-"do"        { printf("Token: DO (Lexema: %s)\n", yytext); }
-"return"    { printf("Token: RETURN (Lexema: %s)\n", yytext); }
-"print"     { printf("Token: PRINT (Lexema: %s)\n", yytext); }
+    /* 4. PALAVRAS RESERVADAS (ESTRUTURAS DE CONTROLE E E/S) */
+"if"        { return IF; }
+"else"      { return ELSE; }
+"while"     { return WHILE; }
+"for"       { return FOR; }
+"do"        { return DO; }
+"return"    { return RETURN; }
+"print"     { return PRINT; }
 
-    /* 3. IDENTIFICADORES (deve vir DEPOIS das palavras reservadas) */
-[a-zA-Z_][a-zA-Z0-9_]* { printf("Token: IDENTIFIER (Lexema: %s)\n", yytext); }
+    /* 5. IDENTIFICADORES */
+[a-zA-Z_][a-zA-Z0-9_]* { yylval.sval = strdup(yytext); return IDENTIFIER; }
 
-    /* 4. OPERADORES DE INCREMENTO E DECREMENTO */
-"++"        { printf("Token: INC (Lexema: %s)\n", yytext); }
-"--"        { printf("Token: DEC (Lexema: %s)\n", yytext); }
+    /* 6. OPERADORES DE INCREMENTO E DECREMENTO */
+"++"        { return INC; }
+"--"        { return DEC; }
 
-    /* 4. OPERADORES DE ATRIBUIÇÃO COMPOSTA */
-"+="        { printf("Token: ADD_ASSIGN (Lexema: %s)\n", yytext); }
-"-="        { printf("Token: SUB_ASSIGN (Lexema: %s)\n", yytext); }
-"*="        { printf("Token: MUL_ASSIGN (Lexema: %s)\n", yytext); }
-"/="        { printf("Token: DIV_ASSIGN (Lexema: %s)\n", yytext); }
+    /* 7. OPERADORES DE ATRIBUIÇÃO COMPOSTA */
+"+="        { return ADD_ASSIGN; }
+"-="        { return SUB_ASSIGN; }
+"*="        { return MUL_ASSIGN; }
+"/="        { return DIV_ASSIGN; }
 
-    /* 5. OPERADORES RELACIONAIS (COMPARAÇÃO) */
-"=="        { printf("Token: EQ (Lexema: %s)\n", yytext); }
-"!="        { printf("Token: NE (Lexema: %s)\n", yytext); }
-"<="        { printf("Token: LE (Lexema: %s)\n", yytext); }
-">="        { printf("Token: GE (Lexema: %s)\n", yytext); }
-"<"         { printf("Token: LT (Lexema: %s)\n", yytext); }
-">"         { printf("Token: GT (Lexema: %s)\n", yytext); }
+    /* 8. OPERADORES RELACIONAIS (COMPARAÇÃO) */
+"=="        { return EQ; }
+"!="        { return NE; }
+"<="        { return LE; }
+">="        { return GE; }
+"<"         { return LT; }
+">"         { return GT; }
 
-    /* 6. OPERADORES LÓGICOS */
-"&&"        { printf("Token: AND (Lexema: %s)\n", yytext); }
-"||"        { printf("Token: OR (Lexema: %s)\n", yytext); }
-"!"         { printf("Token: NOT (Lexema: %s)\n", yytext); }
+    /* 9. OPERADORES LÓGICOS */
+"&&"        { return AND; }
+"||"        { return OR; }
+"!"         { return NOT; }
 
-    /* 7. OPERADOR DE ATRIBUIÇÃO SIMPLES */
-"="         { printf("Token: ASSIGN (Lexema: %s)\n", yytext); }
+    /* 10. OPERADOR DE ATRIBUIÇÃO SIMPLES */
+"="         { return ASSIGN; }
 
-    /* 8. OPERADORES ARITMÉTICOS */
-"+"         { printf("Token: PLUS (Lexema: %s)\n", yytext); }
-"-"         { printf("Token: MINUS (Lexema: %s)\n", yytext); }
-"*"         { printf("Token: TIMES (Lexema: %s)\n", yytext); }
-"/"         { printf("Token: DIVIDE (Lexema: %s)\n", yytext); }
-"%"         { printf("Token: MOD (Lexema: %s)\n", yytext); }
+    /* 11. OPERADORES ARITMÉTICOS */
+"+"         { return PLUS; }
+"-"         { return MINUS; }
+"*"         { return TIMES; }
+"/"         { return DIVIDE; }
+"%"         { return MOD; }
 
-    /* 9. DELIMITADORES E PONTUAÇÃO */
-"{"         { printf("Token: LBRACE (Lexema: %s)\n", yytext); }
-"}"         { printf("Token: RBRACE (Lexema: %s)\n", yytext); }
-"("         { printf("Token: LPAREN (Lexema: %s)\n", yytext); }
-")"         { printf("Token: RPAREN (Lexema: %s)\n", yytext); }
-";"         { printf("Token: SEMI (Lexema: %s)\n", yytext); }
-","         { printf("Token: COMMA (Lexema: %s)\n", yytext); }
+    /* 12. DELIMITADORES E PONTUAÇÃO */
+"{"         { return LBRACE; }
+"}"         { return RBRACE; }
+"("         { return LPAREN; }
+")"         { return RPAREN; }
+";"         { return SEMI; }
+","         { return COMMA; }
 
     /* TRATAMENTO DE ERROS LÉXICOS PARA LITERAIS NÃO FECHADOS */
-\"([^"\\\n]|\\.)*   { printf("ERRO LÉXICO (Linha %d): String não fechada '%s'\n", yylineno, yytext); }
-'([^'\\\n]|\\.)*    { printf("ERRO LÉXICO (Linha %d): Char não fechado '%s'\n", yylineno, yytext); }
+    /* Erros vão para stderr; o trecho inválido é descartado e a análise continua. */
+\"([^"\\\n]|\\.)*   { fprintf(stderr, "ERRO LÉXICO (Linha %d): String não fechada '%s'\n", yylineno, yytext); lex_errors++; }
+'([^'\\\n]|\\.)*    { fprintf(stderr, "ERRO LÉXICO (Linha %d): Char não fechado '%s'\n", yylineno, yytext); lex_errors++; }
 
     /* Ignora espaços em branco, tabulações e quebras de linha */
 [ \t\n\r]+  { /* ignorar */ }
 
     /* Regra de erro léxico para caracteres inválidos */
-.           { printf("ERRO LÉXICO (Linha %d): Caractere desconhecido '%s'\n", yylineno, yytext); }
+.           { fprintf(stderr, "ERRO LÉXICO (Linha %d): Caractere desconhecido '%s'\n", yylineno, yytext); lex_errors++; }
 
 %%
-
-int main(void) {
-    yylex();
-    return 0;
-}
