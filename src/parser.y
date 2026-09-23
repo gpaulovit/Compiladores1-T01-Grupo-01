@@ -1,14 +1,9 @@
-/* FGA0003 - Compiladores 1 */
-/* Engenharia de Software */
-/* Universidade de Brasília (UnB) */
 /* Fase Sintática - Analisador sintático do Mini-C */
 
 /* Gramática livre de contexto do Mini-C, conforme o escopo definido em
  * docs/projeto.md: declarações e tipos, expressões, estruturas de controle,
  * funções e o comando print.
- *
- * As ações semânticas desta fase apenas relatam o que foi reconhecido; não há
- * AST nem tabela de símbolos ainda (previstas para a Sprint 3). */
+ 
 
 %{
 #include <stdio.h>
@@ -25,10 +20,7 @@ int sem_errors = 0;
 /* Contadores das expressões reconhecidas, usados no resumo final. */
 static int n_aritmeticas = 0, n_relacionais = 0, n_logicas = 0;
 
-/* O escopo define void apenas como tipo de retorno de função (docs/projeto.md).
- * A checagem é semântica, e não sintática: separar os tipos na gramática criaria
- * conflito reduce/reduce, porque ao ver "int nome" o parser ainda não sabe se
- * vem uma variável ou uma função. */
+/* O escopo define void apenas como tipo de retorno de função .    */
 static void checa_tipo_var(const char *tipo, const char *nome) {
     if (strcmp(tipo, "void") == 0) {
         fprintf(stderr, "Erro semantico (linha %d): variavel '%s' nao pode ter tipo void.\n",
@@ -38,13 +30,15 @@ static void checa_tipo_var(const char *tipo, const char *nome) {
 }
 
 /* Relatam um operador reconhecido. A ação dispara na REDUÇÃO, então a ordem das
- * linhas reflete a precedência: em "1 + 2 * 3" o '*' é reduzido antes do '+'. */
+ * linhas reflete a precedência: em "1 + 2 * 3" o * A checagem é semântica, e não sintática: separar os tipos na gramática criaria
+ * conflito reduce/reduce, porque ao ver "int nome" o parser ainda não sabe se
+ * vem uma variável ou uma função. */ '*' é reduzido antes do '+'. */
 static void op_aritmetica(const char *op) { n_aritmeticas++; printf("   . aritmetica: %s\n", op); }
 static void op_relacional(const char *op) { n_relacionais++; printf("   . relacional: %s\n", op); }
 static void op_logica(const char *op)     { n_logicas++;     printf("   . logica: %s\n", op); }
 %}
 
-/* Valor semântico dos tokens (preenchido em yylval pelo scanner.l) */
+/* Valor semântico dos tokens */
 %union {
     int    ival;   /* INT_LITERAL */
     double fval;   /* FLOAT_LITERAL */
@@ -74,10 +68,8 @@ static void op_logica(const char *op)     { n_logicas++;     printf("   . logica
 /* Não-terminais com valor semântico */
 %type <sval> tipo
 
-/* ------------------------------------------------------------------------- */
+
 /* PRECEDÊNCIA E ASSOCIATIVIDADE                                             */
-/* ------------------------------------------------------------------------- */
-/* Para resolver o conflito shift/reduce do "dangling else" */
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
 

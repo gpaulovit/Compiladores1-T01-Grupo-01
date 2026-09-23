@@ -1,4 +1,3 @@
-/* FGA0003 - Compiladores 1 */
 /* Ponto de entrada do compilador Mini-C: lê o código-fonte da entrada padrão. */
 
 int yyparse(void);

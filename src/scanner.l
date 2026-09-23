@@ -1,6 +1,3 @@
-/* FGA0003 - Compiladores 1 */
-/* Curso de Engenharia de Software */
-/* Universidade de Brasília (UnB) */
 /* Fase Léxica - Analisador léxico do Mini-C, integrado ao Bison */
 
 %{
