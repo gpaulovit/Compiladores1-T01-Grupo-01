@@ -2,8 +2,7 @@
 
 /* Gramática livre de contexto do Mini-C, conforme o escopo definido em
  * docs/projeto.md: declarações e tipos, expressões, estruturas de controle,
- * funções e o comando print.
- 
+ * funções e o comando print. */
 
 %{
 #include <stdio.h>
@@ -30,9 +29,7 @@ static void checa_tipo_var(const char *tipo, const char *nome) {
 }
 
 /* Relatam um operador reconhecido. A ação dispara na REDUÇÃO, então a ordem das
- * linhas reflete a precedência: em "1 + 2 * 3" o * A checagem é semântica, e não sintática: separar os tipos na gramática criaria
- * conflito reduce/reduce, porque ao ver "int nome" o parser ainda não sabe se
- * vem uma variável ou uma função. */ '*' é reduzido antes do '+'. */
+ * linhas reflete a precedência: em "1 + 2 * 3" o '*' é reduzido antes do '+'. */
 static void op_aritmetica(const char *op) { n_aritmeticas++; printf("   . aritmetica: %s\n", op); }
 static void op_relacional(const char *op) { n_relacionais++; printf("   . relacional: %s\n", op); }
 static void op_logica(const char *op)     { n_logicas++;     printf("   . logica: %s\n", op); }
