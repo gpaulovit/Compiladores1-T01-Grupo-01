@@ -30,7 +30,7 @@ Subconjunto de C definido pela equipe na Sprint 1. Escopo fechado em 02/09/2026.
 
 ### Operadores
 
-- Aritméticos: `+`, `-`, `*`, `/`.
+- Aritméticos: `+`, `-`, `*`, `/`, `%` (resto).
 - Incremento/decremento: `++`, `--`.
 - Comparação: `==`, `!=`, `>`, `<`, `>=`, `<=`.
 - Lógicos: `&&`, `||`.
@@ -133,7 +133,80 @@ int main() {
 
 ## Gramática formal
 
-`TODO: incluir/linkar a gramática livre de contexto (arquivo .y do Bison) conforme evoluir na Sprint 1 e Sprint 3.`
+Gramática livre de contexto implementada em [`src/parser.y`](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/blob/main/src/parser.y) (Bison). Gerada com **zero conflitos** shift/reduce e reduce/reduce. Os símbolos em MAIÚSCULAS são os tokens produzidos pelo analisador léxico; `ε` indica produção vazia.
+
+```bnf
+programa           ::= declaracoes
+
+declaracoes        ::= declaracao | declaracoes declaracao
+declaracao         ::= var_declaracao | fun_declaracao
+
+var_declaracao     ::= tipo IDENTIFIER ';'
+                     | tipo IDENTIFIER '=' expressao ';'
+
+tipo               ::= 'int' | 'float' | 'void'
+
+fun_declaracao     ::= tipo IDENTIFIER '(' parametros_opt ')' bloco
+parametros_opt     ::= ε | parametros
+parametros         ::= parametro | parametros ',' parametro
+parametro          ::= tipo IDENTIFIER
+
+bloco              ::= '{' declaracoes_locais comandos '}'
+declaracoes_locais ::= ε | declaracoes_locais var_declaracao
+comandos           ::= ε | comandos comando
+
+comando            ::= expressao_comando | bloco
+                     | comando_if    | comando_while | comando_for
+                     | comando_do_while | comando_return | comando_print
+
+expressao_comando  ::= expressao ';' | ';'
+comando_if         ::= 'if' '(' expressao ')' comando
+                     | 'if' '(' expressao ')' comando 'else' comando
+comando_while      ::= 'while' '(' expressao ')' comando
+comando_do_while   ::= 'do' comando 'while' '(' expressao ')' ';'
+comando_for        ::= 'for' '(' expressao_opt ';' expressao_opt ';' expressao_opt ')' comando
+comando_return     ::= 'return' expressao_opt ';'
+comando_print      ::= 'print' '(' expressao ')' ';'
+expressao_opt      ::= ε | expressao
+
+expressao          ::= IDENTIFIER ('=' | '+=' | '-=' | '*=' | '/=') expressao
+                     | expressao ('||' | '&&') expressao
+                     | expressao ('==' | '!=' | '<' | '>' | '<=' | '>=') expressao
+                     | expressao ('+' | '-' | '*' | '/' | '%') expressao
+                     | '!' expressao | '-' expressao
+                     | '++' IDENTIFIER | IDENTIFIER '++'
+                     | '--' IDENTIFIER | IDENTIFIER '--'
+                     | '(' expressao ')'
+                     | IDENTIFIER '(' argumentos_opt ')'
+                     | IDENTIFIER | INT_LITERAL | FLOAT_LITERAL
+                     | CHAR_LITERAL | STRING_LITERAL
+
+argumentos_opt     ::= ε | argumentos
+argumentos         ::= expressao | argumentos ',' expressao
+```
+
+### Precedência e associatividade
+
+As regras de `expressao` são propositalmente ambíguas; a ambiguidade é resolvida por declarações de precedência do Bison, listadas **da menor para a maior** (o que vem depois liga mais forte):
+
+| Nível | Associatividade | Operadores |
+|---|---|---|
+| 1 (menor) | à direita | `=` `+=` `-=` `*=` `/=` |
+| 2 | à esquerda | `\|\|` |
+| 3 | à esquerda | `&&` |
+| 4 | à esquerda | `==` `!=` |
+| 5 | à esquerda | `<` `>` `<=` `>=` |
+| 6 | à esquerda | `+` `-` |
+| 7 | à esquerda | `*` `/` `%` |
+| 8 (maior) | à direita | `!`, `-` unário |
+
+O conflito do *dangling else* (`if (a) if (b) x; else y;`) é resolvido por `%prec LOWER_THAN_ELSE`, que liga o `else` ao `if` mais próximo.
+
+### Restrições não expressas na gramática
+
+- **`void` só como tipo de retorno.** A gramática usa um único não-terminal `tipo`, então `void x;` é sintaticamente aceito e rejeitado por **checagem semântica**. Separar os tipos na gramática criaria conflito reduce/reduce, porque ao ver `int nome` o parser LALR(1) ainda não sabe se vem uma variável ou uma função.
+- **Declarações antes dos comandos** dentro de um bloco (estilo C89).
+- **Sem listas de variáveis:** `int a, b;` não é aceito.
 
 ## Linguagem-alvo: TypeScript
 

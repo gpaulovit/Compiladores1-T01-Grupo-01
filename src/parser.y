@@ -1,23 +1,41 @@
-/* FGA0003 - Compiladores 1 */
-/* Engenharia de Software */
-/* Universidade de Brasília (UnB) */
 /* Fase Sintática - Analisador sintático do Mini-C */
 
-/* ATENÇÃO: este arquivo é apenas o esqueleto que liga o scanner ao parser.
- * A declaração dos tokens e do %union é definitiva; a gramática ao final é um
- * placeholder que aceita qualquer sequência de tokens e deve ser substituída
- * pelas regras reais. */
+/* Gramática livre de contexto do Mini-C, conforme o escopo definido em
+ * docs/projeto.md: declarações e tipos, expressões, estruturas de controle,
+ * funções e o comando print. */
 
 %{
 #include <stdio.h>
+#include <string.h>
 
 int yylex(void);
 void yyerror(const char *msg);
 
 extern int yylineno;
+
+/* Erros semânticos encontrados; lido por src/main.c para definir a saída. */
+int sem_errors = 0;
+
+/* Contadores das expressões reconhecidas, usados no resumo final. */
+static int n_aritmeticas = 0, n_relacionais = 0, n_logicas = 0;
+
+/* O escopo define void apenas como tipo de retorno de função .    */
+static void checa_tipo_var(const char *tipo, const char *nome) {
+    if (strcmp(tipo, "void") == 0) {
+        fprintf(stderr, "Erro semantico (linha %d): variavel '%s' nao pode ter tipo void.\n",
+                yylineno, nome);
+        sem_errors++;
+    }
+}
+
+/* Relatam um operador reconhecido. A ação dispara na REDUÇÃO, então a ordem das
+ * linhas reflete a precedência: em "1 + 2 * 3" o '*' é reduzido antes do '+'. */
+static void op_aritmetica(const char *op) { n_aritmeticas++; printf("   . aritmetica: %s\n", op); }
+static void op_relacional(const char *op) { n_relacionais++; printf("   . relacional: %s\n", op); }
+static void op_logica(const char *op)     { n_logicas++;     printf("   . logica: %s\n", op); }
 %}
 
-/* Valor semântico dos tokens (preenchido em yylval pelo scanner.l) */
+/* Valor semântico dos tokens */
 %union {
     int    ival;   /* INT_LITERAL */
     double fval;   /* FLOAT_LITERAL */
@@ -44,10 +62,11 @@ extern int yylineno;
 /* Delimitadores */
 %token LBRACE RBRACE LPAREN RPAREN SEMI COMMA
 
-/* ------------------------------------------------------------------------- */
+/* Não-terminais com valor semântico */
+%type <sval> tipo
+
+
 /* PRECEDÊNCIA E ASSOCIATIVIDADE                                             */
-/* ------------------------------------------------------------------------- */
-/* Para resolver o conflito shift/reduce do "dangling else" */
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
 
@@ -65,7 +84,13 @@ extern int yylineno;
 %%
 
 programa
-    : declaracoes { printf("Analise sintatica concluida com sucesso.\n"); }
+    : declaracoes
+        {
+            printf("\nAnalise sintatica concluida%s.\n",
+                   sem_errors > 0 ? ", com erros semanticos" : " com sucesso");
+            printf("Expressoes reconhecidas: %d aritmeticas, %d relacionais, %d logicas.\n",
+                   n_aritmeticas, n_relacionais, n_logicas);
+        }
     ;
 
 declaracoes
@@ -80,13 +105,15 @@ declaracao
 
 var_declaracao
     : tipo IDENTIFIER SEMI
+        { checa_tipo_var($1, $2); printf("=> Declaracao: %s %s\n", $1, $2); }
     | tipo IDENTIFIER ASSIGN expressao SEMI
+        { checa_tipo_var($1, $2); printf("=> Declaracao com inicializacao: %s %s\n", $1, $2); }
     ;
 
 tipo
-    : INT
-    | FLOAT
-    | VOID
+    : INT    { $$ = "int"; }
+    | FLOAT  { $$ = "float"; }
+    | VOID   { $$ = "void"; }
     ;
 
 /* --- REGRAS DE FUNÇÕES (Main, recursão, etc) --- */
@@ -107,6 +134,7 @@ parametros
 
 parametro
     : tipo IDENTIFIER
+        { checa_tipo_var($1, $2); printf("=> Parametro: %s %s\n", $1, $2); }
     ;
 
 bloco
@@ -180,30 +208,30 @@ expressao_opt
 
 /* --- EXPRESSÕES --- */
 expressao
-    : IDENTIFIER ASSIGN expressao
-    | IDENTIFIER ADD_ASSIGN expressao
-    | IDENTIFIER SUB_ASSIGN expressao
-    | IDENTIFIER MUL_ASSIGN expressao
-    | IDENTIFIER DIV_ASSIGN expressao
-    | expressao OR expressao
-    | expressao AND expressao
-    | expressao EQ expressao
-    | expressao NE expressao
-    | expressao LT expressao
-    | expressao GT expressao
-    | expressao LE expressao
-    | expressao GE expressao
-    | expressao PLUS expressao
-    | expressao MINUS expressao
-    | expressao TIMES expressao
-    | expressao DIVIDE expressao
-    | expressao MOD expressao
-    | NOT expressao
-    | MINUS expressao %prec NOT  /* Negação unária */
-    | INC IDENTIFIER
-    | IDENTIFIER INC
-    | DEC IDENTIFIER
-    | IDENTIFIER DEC
+    : IDENTIFIER ASSIGN expressao      { printf("=> Atribuicao: %s\n", $1); }
+    | IDENTIFIER ADD_ASSIGN expressao  { printf("=> Atribuicao composta (+=): %s\n", $1); }
+    | IDENTIFIER SUB_ASSIGN expressao  { printf("=> Atribuicao composta (-=): %s\n", $1); }
+    | IDENTIFIER MUL_ASSIGN expressao  { printf("=> Atribuicao composta (*=): %s\n", $1); }
+    | IDENTIFIER DIV_ASSIGN expressao  { printf("=> Atribuicao composta (/=): %s\n", $1); }
+    | expressao OR expressao           { op_logica("||"); }
+    | expressao AND expressao          { op_logica("&&"); }
+    | expressao EQ expressao           { op_relacional("=="); }
+    | expressao NE expressao           { op_relacional("!="); }
+    | expressao LT expressao           { op_relacional("<"); }
+    | expressao GT expressao           { op_relacional(">"); }
+    | expressao LE expressao           { op_relacional("<="); }
+    | expressao GE expressao           { op_relacional(">="); }
+    | expressao PLUS expressao         { op_aritmetica("+"); }
+    | expressao MINUS expressao        { op_aritmetica("-"); }
+    | expressao TIMES expressao        { op_aritmetica("*"); }
+    | expressao DIVIDE expressao       { op_aritmetica("/"); }
+    | expressao MOD expressao          { op_aritmetica("%"); }
+    | NOT expressao                    { op_logica("!"); }
+    | MINUS expressao %prec NOT        { op_aritmetica("- (unario)"); }
+    | INC IDENTIFIER                   { printf("=> Incremento (pre): %s\n", $2); }
+    | IDENTIFIER INC                   { printf("=> Incremento (pos): %s\n", $1); }
+    | DEC IDENTIFIER                   { printf("=> Decremento (pre): %s\n", $2); }
+    | IDENTIFIER DEC                   { printf("=> Decremento (pos): %s\n", $1); }
     | LPAREN expressao RPAREN
     | IDENTIFIER LPAREN argumentos_opt RPAREN  { printf("=> Chamada de funcao: %s\n", $1); }
     | IDENTIFIER

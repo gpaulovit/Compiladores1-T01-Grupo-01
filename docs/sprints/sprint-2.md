@@ -26,7 +26,7 @@ O **analisador léxico (Flex) já foi concluído na [Sprint 1](../resultados/spr
 
 ## Principais Entregas
 
-- `scanner.l` adaptado para o Bison: retorna os códigos dos tokens, preenche `yylval` para identificadores e literais e não possui mais `main()`. **Pré-requisito das Frentes B e C.**
+- `scanner.l` adaptado para o Bison: retorna os códigos dos tokens, preenche `yylval` para identificadores e literais e não possui mais `main()`. 
 - Arquivo `.y` com regras para declarações, tipos, expressões (aritméticas, relacionais, lógicas, incremento/decremento, atribuição composta), `if/else`, `while`, `for`, `do-while`, funções (incluindo `main` e recursão) e `print`, com ações semânticas simples.
 - Conjunto de programas de teste em Mini-C, executados sobre lexer + parser, com registro dos resultados.
 - Formulário do P1 preenchido: <https://forms.office.com/r/MyKh4HiAAu>

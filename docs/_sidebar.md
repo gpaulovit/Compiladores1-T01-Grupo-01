@@ -13,6 +13,7 @@
 
 - **Resultados**
   - [Sprint 1](resultados/sprint-1.md)
+  - [Sprint 2](resultados/sprint-2.md)
 
 - **Pontos de Controle**
   - [P1](p1.md)
