@@ -1,6 +1,6 @@
 # Sprint 4 — Semântica & Código Intermediário
 
-**Período:** 15/10/2026 – 04/11/2026
+**Período:** 26/10/2026 – 04/11/2026 
 **Marco:** [P2 / Entrega Final](../p2.md) em 04/11/2026 — 23:59
 **Status:** `TODO: Planejado / Em andamento / Concluído`
 

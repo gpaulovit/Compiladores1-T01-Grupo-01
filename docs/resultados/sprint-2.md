@@ -6,9 +6,9 @@
 
 ## Resumo
 
-A Sprint 2 integrou o analisador léxico ao Bison e implementou a **gramática livre de contexto completa do Mini-C**, cobrindo todo o escopo definido na [Sprint 1](sprint-1.md): declarações e tipos, expressões com precedência, estruturas de controle, funções com recursão e o comando `print`.
+A Sprint 2 integrou o analisador léxico ao Bison e implementou a gramática livre de contexto completa do Mini-C, cobrindo todo o escopo definido na [Sprint 1](sprint-1.md): declarações e tipos, expressões com precedência, estruturas de controle, funções com recursão e o comando `print`.
 
-Ao fim da sprint o compilador reconhece programas Mini-C inteiros, reporta erros léxicos, sintáticos e o primeiro erro semântico, e a gramática é gerada pelo Bison com **zero conflitos** shift/reduce ou reduce/reduce.
+Ao fim da sprint o compilador reconhece programas Mini-C inteiros, reporta erros léxicos, sintáticos e o primeiro erro semântico, e a gramática é gerada pelo Bison com zero conflitos shift/reduce ou reduce/reduce.
 
 | Frente | Issue | PR | Status |
 |---|---|---|---|
