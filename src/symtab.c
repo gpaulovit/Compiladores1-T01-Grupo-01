@@ -267,3 +267,49 @@ int symtab_insert_function(
 
     return 1;
 }
+
+/* Procura um símbolo somente no escopo atual. */
+const Symbol *symtab_lookup_current(
+    const SymbolTable *table,
+    const char *name
+)
+{
+    if (table == NULL || table->current_scope == NULL || name == NULL) {
+        return NULL;
+    }
+
+    for (Symbol *symbol = table->current_scope->symbols;
+         symbol != NULL;
+         symbol = symbol->next) {
+        if (strcmp(symbol->name, name) == 0) {
+            return symbol;
+        }
+    }
+
+    return NULL;
+}
+
+/* Procura um símbolo no escopo atual e nos escopos ancestrais. */
+const Symbol *symtab_lookup(
+    const SymbolTable *table,
+    const char *name
+)
+{
+    if (table == NULL || table->current_scope == NULL || name == NULL) {
+        return NULL;
+    }
+
+    for (Scope *scope = table->current_scope;
+         scope != NULL;
+         scope = scope->parent) {
+        for (Symbol *symbol = scope->symbols;
+             symbol != NULL;
+             symbol = symbol->next) {
+            if (strcmp(symbol->name, name) == 0) {
+                return symbol;
+            }
+        }
+    }
+
+    return NULL;
+}
