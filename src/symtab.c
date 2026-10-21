@@ -56,3 +56,57 @@ void symtab_destroy(SymbolTable *table)
 
     free(table);
 }
+
+/* Abre um novo escopo filho do escopo atual. */
+int symtab_open_scope(SymbolTable *table)
+{
+    if (table == NULL || table->current_scope == NULL) {
+        return 0;
+    }
+
+    Scope *scope = malloc(sizeof(Scope));
+
+    if (scope == NULL) {
+        return 0;
+    }
+
+    scope->symbols = NULL;
+    scope->parent = table->current_scope;
+
+    table->current_scope = scope;
+
+    return 1;
+}
+
+/* Fecha o escopo atual e retorna ao escopo pai. */
+int symtab_close_scope(SymbolTable *table)
+{
+    if (table == NULL || table->current_scope == NULL) {
+        return 0;
+    }
+
+    Scope *scope = table->current_scope;
+
+    /* O escopo global não pode ser fechado. */
+    if (scope->parent == NULL) {
+        return 0;
+    }
+
+    table->current_scope = scope->parent;
+
+    Symbol *symbol = scope->symbols;
+
+    while (symbol != NULL) {
+        Symbol *next = symbol->next;
+
+        free(symbol->name);
+        free(symbol->parameters);
+        free(symbol);
+
+        symbol = next;
+    }
+
+    free(scope);
+
+    return 1;
+}
