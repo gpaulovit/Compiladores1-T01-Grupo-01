@@ -155,6 +155,28 @@ static void test_void_declarations(void)
     symtab_destroy(table);
 }
 
+/* Testa a impressão da tabela para depuração. */
+static void test_print(void)
+{
+    SymbolTable *table = symtab_create();
+
+    assert(table != NULL);
+    assert(symtab_insert_variable(table, "x", TYPE_INT, 5) == 1);
+
+    ParameterType parameters[] = {
+        { TYPE_INT },
+        { TYPE_FLOAT }
+    };
+
+    assert(symtab_insert_function(
+        table, "calcular", TYPE_FLOAT, parameters, 2, 10
+    ) == 1);
+
+    symtab_print(table);
+
+    symtab_destroy(table);
+}
+
 int main(void)
 {
     test_create_destroy();
@@ -164,6 +186,8 @@ int main(void)
     test_shadowing();
     test_function();
     test_void_declarations();
+    test_void_declarations();
+    test_print();
 
     printf("Testes da tabela de simbolos: OK\n");
 
