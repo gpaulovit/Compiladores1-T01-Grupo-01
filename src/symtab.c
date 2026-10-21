@@ -194,3 +194,76 @@ int symtab_insert_parameter(
         table, name, type, SYMBOL_PARAMETER, line
     );
 }
+
+/* Insere uma função e copia os tipos dos seus parâmetros. */
+int symtab_insert_function(
+    SymbolTable *table,
+    const char *name,
+    DataType return_type,
+    const ParameterType *parameters,
+    size_t parameter_count,
+    int line
+)
+{
+    if (table == NULL || table->current_scope == NULL || name == NULL) {
+        return 0;
+    }
+
+    if (parameter_count > 0 && parameters == NULL) {
+        return 0;
+    }
+
+    /* Impede redeclaração no escopo atual. */
+    for (Symbol *current = table->current_scope->symbols;
+         current != NULL;
+         current = current->next) {
+        if (strcmp(current->name, name) == 0) {
+            return 0;
+        }
+    }
+
+    Symbol *symbol = malloc(sizeof(Symbol));
+
+    if (symbol == NULL) {
+        return 0;
+    }
+
+    size_t name_length = strlen(name) + 1;
+    symbol->name = malloc(name_length);
+
+    if (symbol->name == NULL) {
+        free(symbol);
+        return 0;
+    }
+
+    memcpy(symbol->name, name, name_length);
+
+    symbol->type = return_type;
+    symbol->kind = SYMBOL_FUNCTION;
+    symbol->line = line;
+    symbol->parameters = NULL;
+    symbol->parameter_count = parameter_count;
+
+    if (parameter_count > 0) {
+        symbol->parameters = malloc(
+            parameter_count * sizeof(ParameterType)
+        );
+
+        if (symbol->parameters == NULL) {
+            free(symbol->name);
+            free(symbol);
+            return 0;
+        }
+
+        memcpy(
+            symbol->parameters,
+            parameters,
+            parameter_count * sizeof(ParameterType)
+        );
+    }
+
+    symbol->next = table->current_scope->symbols;
+    table->current_scope->symbols = symbol;
+
+    return 1;
+}
