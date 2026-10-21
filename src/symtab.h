@@ -47,4 +47,49 @@ typedef struct {
     Scope *current_scope;
 } SymbolTable;
 
+/* Ciclo de vida da tabela. */
+SymbolTable *symtab_create(void);
+void symtab_destroy(SymbolTable *table);
+
+/* Gerenciamento de escopos. */
+int symtab_open_scope(SymbolTable *table);
+int symtab_close_scope(SymbolTable *table);
+
+/* Inserção de símbolos. */
+int symtab_insert_variable(
+    SymbolTable *table,
+    const char *name,
+    DataType type,
+    int line
+);
+
+int symtab_insert_parameter(
+    SymbolTable *table,
+    const char *name,
+    DataType type,
+    int line
+);
+
+int symtab_insert_function(
+    SymbolTable *table,
+    const char *name,
+    DataType return_type,
+    const ParameterType *parameters,
+    size_t parameter_count,
+    int line
+);
+
+/* Busca de símbolos. */
+const Symbol *symtab_lookup_current(
+    const SymbolTable *table,
+    const char *name
+);
+
+const Symbol *symtab_lookup(
+    const SymbolTable *table,
+    const char *name
+);
+
+/* Impressão para depuração. */
+void symtab_print(const SymbolTable *table);
 #endif /* SYMTAB_H */
