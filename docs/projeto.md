@@ -141,8 +141,11 @@ programa           ::= declaracoes
 declaracoes        ::= declaracao | declaracoes declaracao
 declaracao         ::= var_declaracao | fun_declaracao
 
-var_declaracao     ::= tipo IDENTIFIER ';'
-                     | tipo IDENTIFIER '=' expressao ';'
+var_declaracao     ::= lista_variaveis ';'
+lista_variaveis    ::= tipo IDENTIFIER
+                     | tipo IDENTIFIER '=' expressao
+                     | lista_variaveis ',' IDENTIFIER
+                     | lista_variaveis ',' IDENTIFIER '=' expressao
 
 tipo               ::= 'int' | 'float' | 'void'
 
@@ -151,9 +154,9 @@ parametros_opt     ::= ε | parametros
 parametros         ::= parametro | parametros ',' parametro
 parametro          ::= tipo IDENTIFIER
 
-bloco              ::= '{' declaracoes_locais comandos '}'
-declaracoes_locais ::= ε | declaracoes_locais var_declaracao
-comandos           ::= ε | comandos comando
+bloco              ::= '{' itens_bloco '}'
+itens_bloco        ::= ε | itens_bloco item_bloco
+item_bloco         ::= var_declaracao | comando
 
 comando            ::= expressao_comando | bloco
                      | comando_if    | comando_while | comando_for
@@ -205,8 +208,8 @@ O conflito do *dangling else* (`if (a) if (b) x; else y;`) é resolvido por `%pr
 ### Restrições não expressas na gramática
 
 - **`void` só como tipo de retorno.** A gramática usa um único não-terminal `tipo`, então `void x;` é sintaticamente aceito e rejeitado por **checagem semântica**. Separar os tipos na gramática criaria conflito reduce/reduce, porque ao ver `int nome` o parser LALR(1) ainda não sabe se vem uma variável ou uma função.
-- **Declarações antes dos comandos** dentro de um bloco (estilo C89).
-- **Sem listas de variáveis:** `int a, b;` não é aceito.
+- **Itens de bloco em ordem livre:** declarações e comandos podem ser intercalados; sua ordem no código-fonte é preservada.
+- **Listas de variáveis:** `int a, b = 2, c;` compartilha o tipo, com inicialização individual opcional. A vírgula não é um operador de expressão.
 
 ## Linguagem-alvo: TypeScript
 

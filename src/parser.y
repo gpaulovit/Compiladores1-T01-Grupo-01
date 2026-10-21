@@ -63,7 +63,7 @@ static void op_logica(const char *op)     { n_logicas++;     printf("   . logica
 %token LBRACE RBRACE LPAREN RPAREN SEMI COMMA
 
 /* Não-terminais com valor semântico */
-%type <sval> tipo
+%type <sval> tipo lista_variaveis
 
 
 /* PRECEDÊNCIA E ASSOCIATIVIDADE                                             */
@@ -104,10 +104,21 @@ declaracao
     ;
 
 var_declaracao
-    : tipo IDENTIFIER SEMI
-        { checa_tipo_var($1, $2); printf("=> Declaracao: %s %s\n", $1, $2); }
-    | tipo IDENTIFIER ASSIGN expressao SEMI
-        { checa_tipo_var($1, $2); printf("=> Declaracao com inicializacao: %s %s\n", $1, $2); }
+    : lista_variaveis SEMI
+    ;
+
+/* A lista propaga o tipo comum sem estado global ou acao intermediaria.
+ * Cada declarador conserva sua propria inicializacao. Na AST (#17), esta
+ * lista deve produzir declaracoes individuais, na ordem do codigo-fonte. */
+lista_variaveis
+    : tipo IDENTIFIER
+        { $$ = $1; checa_tipo_var($1, $2); printf("=> Declaracao: %s %s\n", $1, $2); }
+    | tipo IDENTIFIER ASSIGN expressao
+        { $$ = $1; checa_tipo_var($1, $2); printf("=> Declaracao com inicializacao: %s %s\n", $1, $2); }
+    | lista_variaveis COMMA IDENTIFIER
+        { $$ = $1; checa_tipo_var($1, $3); printf("=> Declaracao: %s %s\n", $1, $3); }
+    | lista_variaveis COMMA IDENTIFIER ASSIGN expressao
+        { $$ = $1; checa_tipo_var($1, $3); printf("=> Declaracao com inicializacao: %s %s\n", $1, $3); }
     ;
 
 tipo
@@ -138,17 +149,17 @@ parametro
     ;
 
 bloco
-    : LBRACE declaracoes_locais comandos RBRACE
+    : LBRACE itens_bloco RBRACE
     ;
 
-declaracoes_locais
+itens_bloco
     : %empty
-    | declaracoes_locais var_declaracao
+    | itens_bloco item_bloco
     ;
 
-comandos
-    : %empty
-    | comandos comando
+item_bloco
+    : var_declaracao
+    | comando
     ;
 
 comando
