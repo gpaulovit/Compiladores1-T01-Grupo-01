@@ -134,6 +134,27 @@ static void test_function(void)
     symtab_destroy(table);
 }
 
+/* Testa a rejeição de variáveis e parâmetros do tipo void. */
+static void test_void_declarations(void)
+{
+    SymbolTable *table = symtab_create();
+
+    assert(table != NULL);
+
+    assert(symtab_insert_variable(
+        table, "invalida", TYPE_VOID, 1
+    ) == 0);
+
+    assert(symtab_insert_parameter(
+        table, "param_invalido", TYPE_VOID, 2
+    ) == 0);
+
+    assert(symtab_lookup(table, "invalida") == NULL);
+    assert(symtab_lookup(table, "param_invalido") == NULL);
+
+    symtab_destroy(table);
+}
+
 int main(void)
 {
     test_create_destroy();
@@ -142,6 +163,7 @@ int main(void)
     test_scopes();
     test_shadowing();
     test_function();
+    test_void_declarations();
 
     printf("Testes da tabela de simbolos: OK\n");
 
