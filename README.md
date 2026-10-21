@@ -4,6 +4,20 @@
 
 Projeto da equipe 01 da disciplina de Compiladores 1. O objetivo é traduzir um subconjunto da linguagem C (mini-C) para TypeScript usando as etapas clássicas de um compilador: análise léxica, análise sintática, AST, validações semânticas básicas e geração de código final.
 
+## Compilação e testes
+
+Em terminal Linux/MSYS2 com GCC, Flex, Bison, GNU Make, Bash e coreutils:
+
+```bash
+make
+make test
+make test-runner
+```
+
+O corpus e as dependências semânticas ainda pendentes estão documentados em
+[testes/sprint3/README.md](testes/sprint3/README.md). A suíte completa deve
+falhar enquanto os erros semânticos da Frente C (#19) não forem detectados.
+
 ## Equipe atual (4 integrantes)
 
 <table align="center">

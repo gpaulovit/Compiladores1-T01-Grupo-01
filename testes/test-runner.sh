@@ -11,7 +11,7 @@ cat > "$work/compiler" <<'COMPILER'
 IFS= read -r expectation
 case "${MODE:-correct}" in
     crash) exit 139 ;;
-    hang) sleep 2; exit 0 ;;
+    hang) sleep 3; exit 0 ;;
 esac
 if [[ "$expectation" == *SUCESSO ]]; then
     [[ "${MODE:-correct}" == warning ]] && echo 'erro inesperado' >&2
@@ -27,7 +27,7 @@ COMPILER
 chmod +x "$work/compiler"
 for mode in correct wrong_message wrong_status stdout_only warning crash hang; do
     status=0
-    MODE="$mode" TEST_TIMEOUT=0.1 TEST_LOG_DIR="$work/log-$mode" \
+    MODE="$mode" TEST_TIMEOUT=1 TEST_LOG_DIR="$work/log-$mode" \
         bash testes/run-tests.sh "$work/compiler" "$work/suite" > "$work/$mode.txt" 2>&1 || status=$?
     expected=1
     [[ "$mode" == correct ]] && expected=0
