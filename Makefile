@@ -7,10 +7,21 @@
 CC     = gcc
 CFLAGS = -Wall -Ibuild -Isrc
 B      = build
+TEST_SUITES ?= testes/sprint2 testes/sprint3
 
 all: $(B)/compilador
 
 lex-debug: $(B)/lex_debug
+
+# Falha se houver conflito, inclusive quando o parser ja estiver compilado.
+check-grammar: | $(B)
+	bison -Werror=conflicts-sr -Werror=conflicts-rr -Wcounterexamples -d -o $(B)/check-parser.c src/parser.y
+
+test: all check-grammar
+	bash testes/run-tests.sh ./$(B)/compilador $(TEST_SUITES)
+
+test-runner:
+	bash testes/test-runner.sh
 
 # O Bison roda primeiro: gera y.tab.h, que o scanner inclui.
 $(B)/y.tab.c $(B)/y.tab.h: src/parser.y | $(B)
@@ -32,4 +43,4 @@ $(B):
 clean:
 	rm -rf $(B)
 
-.PHONY: all lex-debug clean
+.PHONY: all lex-debug clean test check-grammar test-runner
