@@ -2,6 +2,7 @@
 #include "symtab.h"
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 /* Cria a tabela de símbolos com um escopo global vazio. */
 SymbolTable *symtab_create(void)
@@ -312,4 +313,105 @@ const Symbol *symtab_lookup(
     }
 
     return NULL;
+}
+
+/* Converte um tipo de dado em texto para depuração. */
+static const char *symtab_type_name(DataType type)
+{
+    switch (type) {
+        case TYPE_INT:
+            return "int";
+        case TYPE_FLOAT:
+            return "float";
+        case TYPE_VOID:
+            return "void";
+        default:
+            return "desconhecido";
+    }
+}
+
+/* Converte a categoria de um símbolo em texto. */
+static const char *symtab_kind_name(SymbolKind kind)
+{
+    switch (kind) {
+        case SYMBOL_VARIABLE:
+            return "variavel";
+        case SYMBOL_PARAMETER:
+            return "parametro";
+        case SYMBOL_FUNCTION:
+            return "funcao";
+        default:
+            return "desconhecido";
+    }
+}
+
+/* Imprime os símbolos dos escopos abertos para depuração. */
+void symtab_print(const SymbolTable *table)
+{
+    if (table == NULL || table->current_scope == NULL) {
+        printf("Tabela de simbolos vazia ou invalida.\n");
+        return;
+    }
+
+    const Scope *scope = table->current_scope;
+    size_t scope_level = 0;
+
+    /* Conta o nível do escopo atual. */
+    for (const Scope *current = scope;
+         current->parent != NULL;
+         current = current->parent) {
+        scope_level++;
+    }
+
+    /* Percorre do escopo global até o escopo atual. */
+    const Scope *scopes[256];
+    size_t scope_count = 0;
+
+    for (const Scope *current = scope;
+         current != NULL && scope_count < 256;
+         current = current->parent) {
+        scopes[scope_count++] = current;
+    }
+
+    printf("Tabela de simbolos:\n");
+
+    while (scope_count > 0) {
+        const Scope *current = scopes[--scope_count];
+
+        printf("Escopo (nivel %zu):\n", scope_level);
+        if (scope_level > 0) {
+            scope_level--;
+        }
+
+        for (const Symbol *symbol = current->symbols;
+             symbol != NULL;
+             symbol = symbol->next) {
+            printf(
+                "  Nome: %s | Tipo: %s | Categoria: %s | Linha: %d",
+                symbol->name,
+                symtab_type_name(symbol->type),
+                symtab_kind_name(symbol->kind),
+                symbol->line
+            );
+
+            if (symbol->kind == SYMBOL_FUNCTION) {
+                printf(" | Parametros: (");
+
+                for (size_t i = 0; i < symbol->parameter_count; i++) {
+                    if (i > 0) {
+                        printf(", ");
+                    }
+
+                    printf(
+                        "%s",
+                        symtab_type_name(symbol->parameters[i].type)
+                    );
+                }
+
+                printf(")");
+            }
+
+            printf("\n");
+        }
+    }
 }
