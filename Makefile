@@ -19,8 +19,8 @@ $(B)/y.tab.c $(B)/y.tab.h: src/parser.y | $(B)
 $(B)/lex.yy.c: src/scanner.l $(B)/y.tab.h | $(B)
 	flex -o $@ src/scanner.l
 
-$(B)/compilador: $(B)/y.tab.c $(B)/lex.yy.c src/main.c
-	$(CC) $(CFLAGS) -o $@ $^
+$(B)/compilador: $(B)/y.tab.c $(B)/lex.yy.c src/main.c src/symtab.c src/symtab.h
+	$(CC) $(CFLAGS) -o $@ $(B)/y.tab.c $(B)/lex.yy.c src/main.c src/symtab.c
 
 # lex_debug reaproveita y.tab.c para fornecer yylval/yyerror; o main é o do driver.
 $(B)/lex_debug: $(B)/y.tab.c $(B)/lex.yy.c src/lex_debug.c
@@ -29,7 +29,14 @@ $(B)/lex_debug: $(B)/y.tab.c $(B)/lex.yy.c src/lex_debug.c
 $(B):
 	mkdir -p $(B)
 
+# Testes unitários da tabela de símbolos.
+$(B)/teste_symtab: testes/teste_symtab.c src/symtab.c src/symtab.h | $(B)
+	$(CC) $(CFLAGS) -o $@ testes/teste_symtab.c src/symtab.c
+
+test-symtab: $(B)/teste_symtab
+	./$(B)/teste_symtab
+
 clean:
 	rm -rf $(B)
 
-.PHONY: all lex-debug clean
+.PHONY: all lex-debug test-symtab clean
