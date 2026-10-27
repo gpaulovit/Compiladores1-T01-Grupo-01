@@ -26,7 +26,29 @@ Subconjunto de C definido pela equipe na Sprint 1. Escopo fechado em 02/09/2026.
 
 - Tipos suportados: `int`, `float` e `void` (apenas como tipo de retorno de função).
 - Declaração e atribuição de variáveis (ex.: `int x = 10;`).
+- Declarações múltiplas (ex.: `int a, b = 2, c;`) e intercaladas com comandos.
 - Variáveis locais (escopo de função/bloco) e globais.
+
+#### Regras de tipos e análise semântica (Sprint 3)
+
+- **Compatibilidade e promoção implícita:** 
+  - `int` é promovido implicitamente para `float` quando necessário (em expressões aritméticas binárias, inicializações de variáveis, atribuições, argumentos de função e comandos `return`).
+  - Atribuir um valor `float` a uma variável `int` é considerado **erro semântico** (`atribuicao incompativel para '<nome>'`).
+  - Retornar um valor `float` em uma função de retorno `int` é considerado **erro semântico** (`retorno incompativel na funcao '<nome>'`).
+- **Restrições do tipo `void`:**
+  - `void` é proibido na declaração de variáveis e parâmetros.
+  - Funções `void` não podem retornar expressões com valor (`funcao void '<nome>' nao pode retornar valor`).
+  - Funções não-void (`int`, `float`) são obrigadas a retornar um valor (`funcao '<nome>' deve retornar valor`).
+  - O resultado de uma função `void` não pode ser usado como operando/valor em expressões (`funcao void '<nome>' usada como valor`).
+- **Escopos e Identificadores:**
+  - Identificadores de variáveis e funções devem ser declarados antes do uso (`variavel/funcao '<nome>' nao declarada`).
+  - Não é permitida a redeclaração de identificadores dentro do mesmo escopo (`variavel '<nome>' ja declarada neste escopo`). Parâmetros pertencem ao escopo do corpo da função e não podem ser redeclarados como variáveis locais no primeiro nível da função.
+  - Variáveis declaradas em blocos internos `{ ... }` deixam de ser visíveis após o encerramento do bloco.
+- **Chamadas de Função:**
+  - O número de argumentos fornecidos deve corresponder exatamente à quantidade de parâmetros na assinatura da função (`numero de argumentos incompativel na chamada de '<nome>'`).
+  - Os tipos dos argumentos devem ser compatíveis com os tipos esperados pelos parâmetros, respeitando as regras de promoção `int` → `float`.
+- **Literais de Texto (`string` e `char`):**
+  - Literais `string` e `char` são permitidos **exclusivamente** dentro da instrução de saída `print(...)`. Seu uso em qualquer outra expressão gera erro semântico (`string/char fora do print`).
 
 ### Operadores
 
