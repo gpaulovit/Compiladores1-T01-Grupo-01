@@ -1,9 +1,3 @@
-/* Árvore sintática abstrata (AST) do Mini-C.
- *
- * O parser constrói um nó a cada redução; a raiz fica em programa. Todos os
- * nós têm o mesmo formato: o que muda de uma construção para outra é a
- * categoria e o significado de cada posição de filhos[], documentado abaixo. */
-
 #ifndef AST_H
 #define AST_H
 
@@ -12,8 +6,7 @@
 
 #define AST_MAX_FILHOS 4
 
-/* Uma categoria por construção da linguagem. Ao lado de cada uma, o uso dos
- * campos; filho ausente é NULL. "Lista" é encadeada pelo campo prox. */
+/* Uma categoria por construção da linguagem.*/
 typedef enum {
     /* Estrutura do programa */
     NO_PROGRAMA,    /* [0] lista das declarações globais (variáveis e funções) */

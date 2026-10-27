@@ -32,12 +32,16 @@ $(B)/y.tab.c $(B)/y.tab.h: src/parser.y | $(B)
 $(B)/lex.yy.c: src/scanner.l $(B)/y.tab.h | $(B)
 	flex -o $@ src/scanner.l
 
-$(B)/compilador: $(B)/y.tab.c $(B)/lex.yy.c src/main.c src/symtab.c src/symtab.h src/semantico.c src/semantico.h
-	$(CC) $(CFLAGS) -o $@ $(B)/y.tab.c $(B)/lex.yy.c src/main.c src/symtab.c src/semantico.c
+# Módulos chamados pelas ações do parser; todo binário que linka y.tab.c precisa deles.
+MODULOS = src/symtab.c src/semantico.c src/ast.c
+HEADERS = src/symtab.h src/semantico.h src/ast.h
+
+$(B)/compilador: $(B)/y.tab.c $(B)/lex.yy.c src/main.c $(MODULOS) $(HEADERS)
+	$(CC) $(CFLAGS) -o $@ $(B)/y.tab.c $(B)/lex.yy.c src/main.c $(MODULOS)
 
 # lex_debug reaproveita y.tab.c para fornecer yylval/yyerror; o main é o do driver.
-$(B)/lex_debug: $(B)/y.tab.c $(B)/lex.yy.c src/lex_debug.c
-	$(CC) $(CFLAGS) -o $@ $^
+$(B)/lex_debug: $(B)/y.tab.c $(B)/lex.yy.c src/lex_debug.c $(MODULOS) $(HEADERS)
+	$(CC) $(CFLAGS) -o $@ $(B)/y.tab.c $(B)/lex.yy.c src/lex_debug.c $(MODULOS)
 
 $(B):
 	mkdir -p $(B)

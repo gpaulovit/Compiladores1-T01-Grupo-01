@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include "symtab.h"
 #include "semantico.h"
+#include "ast.h"
 
 int yylex(void);
 void yyerror(const char *msg);
@@ -16,6 +17,9 @@ extern int yylineno;
 
 /* Erros semânticos encontrados; lido por src/main.c para definir a saída. */
 int sem_errors = 0;
+
+/* Raiz da AST, montada na redução de programa; lida por src/main.c. */
+No *ast_raiz = NULL;
 
 /* Tabela de símbolos utilizada durante a análise semântica. */
 static SymbolTable *symbol_table = NULL;
@@ -44,9 +48,13 @@ static void op_relacional(const char *op) { n_relacionais++; printf("   . relaci
 static void op_logica(const char *op)     { n_logicas++;     printf("   . logica: %s\n", op); }
 %}
 
+/* Habilita @n nas ações: a linha de cada símbolo, preenchida pelo scanner. */
+%locations
+
 %code requires {
     #include "symtab.h"
     #include "semantico.h"
+    #include "ast.h"
 
     struct ParametroParser {
         char *name;
