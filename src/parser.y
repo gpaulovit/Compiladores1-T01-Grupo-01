@@ -1,14 +1,13 @@
-/* Fase Sintática - Analisador sintático do Mini-C */
-
-/* Gramática livre de contexto do Mini-C, conforme o escopo definido em
- * docs/projeto.md: declarações e tipos, expressões, estruturas de controle,
- * funções e o comando print. */
+/* FGA0003 - Compiladores 1 */
+/* Engenharia de Software - Universidade de Brasília (UnB) */
+/* Fase Sintática e Semântica - Analisador do Mini-C */
 
 %{
 #include <stdio.h>
 #include <string.h>
-#include "symtab.h"
 #include <stdlib.h>
+#include "symtab.h"
+#include "semantico.h"
 
 int yylex(void);
 void yyerror(const char *msg);
@@ -38,30 +37,6 @@ static DataType converte_tipo(const char *tipo) {
     return TYPE_VOID;
 }
 
-/* O escopo define void apenas como tipo de retorno de função .    */
-static void checa_tipo_var(const char *tipo, const char *nome) {
-    if (strcmp(tipo, "void") == 0) {
-        fprintf(stderr, "Erro semantico (linha %d): variavel '%s' nao pode ter tipo void.\n",
-                yylineno, nome);
-        sem_errors++;
-    }
-}
-
-static void registra_variavel(const char *tipo, const char *nome) {
-    checa_tipo_var(tipo, nome);
-
-    if (strcmp(tipo, "void") == 0) {
-        return;
-    }
-
-    if (!symtab_insert_variable(symbol_table, nome, converte_tipo(tipo), yylineno)) {
-        fprintf(stderr,
-                "Erro semantico (linha %d): variavel '%s' ja declarada neste escopo.\n",
-                yylineno, nome);
-        sem_errors++;
-    }
-}
-
 /* Relatam um operador reconhecido. A ação dispara na REDUÇÃO, então a ordem das
  * linhas reflete a precedência: em "1 + 2 * 3" o '*' é reduzido antes do '+'. */
 static void op_aritmetica(const char *op) { n_aritmeticas++; printf("   . aritmetica: %s\n", op); }
@@ -71,6 +46,7 @@ static void op_logica(const char *op)     { n_logicas++;     printf("   . logica
 
 %code requires {
     #include "symtab.h"
+    #include "semantico.h"
 
     struct ParametroParser {
         char *name;
@@ -91,6 +67,9 @@ static void op_logica(const char *op)     { n_logicas++;     printf("   . logica
         size_t count;
     } parametros;
     struct ParametroParser parametro;
+
+    SemanticExpr sem_expr;
+    SemanticArgs sem_args;
 }
 
 /* Tokens com valor */
@@ -114,9 +93,11 @@ static void op_logica(const char *op)     { n_logicas++;     printf("   . logica
 %token LBRACE RBRACE LPAREN RPAREN SEMI COMMA
 
 /* Não-terminais com valor semântico */
-%type <tipo> tipo
+%type <tipo> tipo lista_variaveis
 %type <parametros> parametros parametros_opt
 %type <parametro> parametro
+%type <sem_expr> expressao expressao_opt
+%type <sem_args> argumentos argumentos_opt
 
 %destructor { free($$); } <sval>
 
@@ -129,8 +110,10 @@ static void op_logica(const char *op)     { n_logicas++;     printf("   . logica
 
 %destructor { free($$.name); } <parametro>
 
+%destructor { semantico_libera_args(&$$); } <sem_args>
+%destructor { semantico_libera_expr(&$$); } <sem_expr>
 
-/* PRECEDÊNCIA E ASSOCIATIVIDADE                                             */
+/* PRECEDÊNCIA E ASSOCIATIVIDADE */
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
 
@@ -156,6 +139,7 @@ programa
               sem_errors++;
               YYABORT;
           }
+          semantico_init(symbol_table);
       }
       declaracoes
         {
@@ -177,17 +161,37 @@ declaracao
     ;
 
 var_declaracao
-    : tipo IDENTIFIER SEMI
+    : lista_variaveis SEMI
+    ;
+
+lista_variaveis
+    : tipo IDENTIFIER
         {
-            registra_variavel($1, $2);
+            semantico_checa_declaracao_var($1, $2, yylineno);
             printf("=> Declaracao: %s %s\n", $1, $2);
+            $$ = $1;
             free($2);
         }
-    | tipo IDENTIFIER ASSIGN expressao SEMI
+    | tipo IDENTIFIER ASSIGN expressao
         {
-            registra_variavel($1, $2);
+            semantico_checa_declaracao_var_init($1, $2, $4, yylineno);
             printf("=> Declaracao com inicializacao: %s %s\n", $1, $2);
+            $$ = $1;
             free($2);
+        }
+    | lista_variaveis COMMA IDENTIFIER
+        {
+            semantico_checa_declaracao_var($1, $3, yylineno);
+            printf("=> Declaracao: %s %s\n", $1, $3);
+            $$ = $1;
+            free($3);
+        }
+    | lista_variaveis COMMA IDENTIFIER ASSIGN expressao
+        {
+            semantico_checa_declaracao_var_init($1, $3, $5, yylineno);
+            printf("=> Declaracao com inicializacao: %s %s\n", $1, $3);
+            $$ = $1;
+            free($3);
         }
     ;
 
@@ -201,6 +205,7 @@ tipo
 fun_declaracao
     : tipo IDENTIFIER LPAREN parametros_opt RPAREN
         {
+            semantico_define_funcao_inicio($1, $2, yylineno);
             ParameterType *tipos_parametros = NULL;
             size_t quantidade = $4.count;
 
@@ -252,7 +257,7 @@ fun_declaracao
                             $4.items[i].type,
                             $4.items[i].line)) {
                         fprintf(stderr,
-                                "Erro semantico (linha %d): parametro '%s' invalido ou redeclarado.\n",
+                                "Erro semantico (linha %d): variavel '%s' ja declarada neste escopo.\n",
                                 $4.items[i].line,
                                 $4.items[i].name);
                         sem_errors++;
@@ -260,11 +265,13 @@ fun_declaracao
                 }
             }
         }
-      LBRACE declaracoes_locais comandos RBRACE
+      LBRACE itens_bloco RBRACE
         {
             if ($<ival>6) {
                 symtab_close_scope(symbol_table);
             }
+
+            semantico_define_funcao_fim();
 
             for (size_t i = 0; i < $4.count; i++) {
                 free($4.items[i].name);
@@ -332,7 +339,7 @@ parametro
             $$.name = $2;
             $$.type = converte_tipo($1);
             $$.line = yylineno;
-            checa_tipo_var($1, $2);
+            semantico_checa_declaracao_param($1, $2, yylineno);
             printf("=> Parametro: %s %s\n", $1, $2);
         }
     ;
@@ -348,7 +355,7 @@ bloco
                 sem_errors++;
             }
         }
-      declaracoes_locais comandos RBRACE
+      itens_bloco RBRACE
         {
             if ($<ival>2) {
                 symtab_close_scope(symbol_table);
@@ -356,14 +363,14 @@ bloco
         }
     ;
 
-declaracoes_locais
+itens_bloco
     : %empty
-    | declaracoes_locais var_declaracao
+    | itens_bloco item_bloco
     ;
 
-comandos
-    : %empty
-    | comandos comando
+item_bloco
+    : var_declaracao
+    | comando
     ;
 
 comando
@@ -379,91 +386,277 @@ comando
 
 expressao_comando
     : expressao SEMI
+        {
+            semantico_checa_expressao_comando($1, yylineno);
+        }
     | SEMI
     ;
 
 /* --- ESTRUTURAS DE CONTROLE (if/else) --- */
 comando_if
     : IF LPAREN expressao RPAREN comando %prec LOWER_THAN_ELSE
-        { printf("=> Reconheceu IF\n"); }
+        {
+            semantico_checa_condicao($3, yylineno);
+            printf("=> Reconheceu IF\n");
+        }
     | IF LPAREN expressao RPAREN comando ELSE comando
-        { printf("=> Reconheceu IF-ELSE\n"); }
+        {
+            semantico_checa_condicao($3, yylineno);
+            printf("=> Reconheceu IF-ELSE\n");
+        }
     ;
 
 /* --- ESTRUTURAS DE LAÇO --- */
 comando_while
     : WHILE LPAREN expressao RPAREN comando
-        { printf("=> Reconheceu WHILE\n"); }
+        {
+            semantico_checa_condicao($3, yylineno);
+            printf("=> Reconheceu WHILE\n");
+        }
     ;
 
 comando_do_while
     : DO comando WHILE LPAREN expressao RPAREN SEMI
-        { printf("=> Reconheceu DO-WHILE\n"); }
+        {
+            semantico_checa_condicao($5, yylineno);
+            printf("=> Reconheceu DO-WHILE\n");
+        }
     ;
 
 comando_for
     : FOR LPAREN expressao_opt SEMI expressao_opt SEMI expressao_opt RPAREN comando
-        { printf("=> Reconheceu FOR\n"); }
+        {
+            semantico_checa_expressao_comando($3, yylineno);
+            semantico_checa_condicao($5, yylineno);
+            semantico_checa_expressao_comando($7, yylineno);
+            printf("=> Reconheceu FOR\n");
+        }
     ;
 
 comando_return
-    : RETURN expressao_opt SEMI
+    : RETURN SEMI
+        {
+            semantico_checa_retorno_vazio(yylineno);
+        }
+    | RETURN expressao SEMI
+        {
+            semantico_checa_retorno($2, yylineno);
+        }
     ;
 
 /* --- REGRA DE SAÍDA (print) --- */
 comando_print
     : PRINT LPAREN expressao RPAREN SEMI
-        { printf("=> Reconheceu comando PRINT\n"); }
+        {
+            semantico_checa_print($3, yylineno);
+            printf("=> Reconheceu comando PRINT\n");
+        }
     ;
 
 expressao_opt
     : %empty
+        {
+            $$.type = EXP_TYPE_INT;
+            $$.line = yylineno;
+            $$.func_name = NULL;
+        }
     | expressao
+        {
+            $$ = $1;
+        }
     ;
 
 /* --- EXPRESSÕES --- */
 expressao
-    : IDENTIFIER ASSIGN expressao      { printf("=> Atribuicao: %s\n", $1); free($1); }
-    | IDENTIFIER ADD_ASSIGN expressao  { printf("=> Atribuicao composta (+=): %s\n", $1); free($1); }
-    | IDENTIFIER SUB_ASSIGN expressao  { printf("=> Atribuicao composta (-=): %s\n", $1); free($1); }
-    | IDENTIFIER MUL_ASSIGN expressao  { printf("=> Atribuicao composta (*=): %s\n", $1); free($1); }
-    | IDENTIFIER DIV_ASSIGN expressao  { printf("=> Atribuicao composta (/=): %s\n", $1); free($1); }
-    | expressao OR expressao           { op_logica("||"); }
-    | expressao AND expressao          { op_logica("&&"); }
-    | expressao EQ expressao           { op_relacional("=="); }
-    | expressao NE expressao           { op_relacional("!="); }
-    | expressao LT expressao           { op_relacional("<"); }
-    | expressao GT expressao           { op_relacional(">"); }
-    | expressao LE expressao           { op_relacional("<="); }
-    | expressao GE expressao           { op_relacional(">="); }
-    | expressao PLUS expressao         { op_aritmetica("+"); }
-    | expressao MINUS expressao        { op_aritmetica("-"); }
-    | expressao TIMES expressao        { op_aritmetica("*"); }
-    | expressao DIVIDE expressao       { op_aritmetica("/"); }
-    | expressao MOD expressao          { op_aritmetica("%"); }
-    | NOT expressao                    { op_logica("!"); }
-    | MINUS expressao %prec NOT        { op_aritmetica("- (unario)"); }
-    | INC IDENTIFIER                   { printf("=> Incremento (pre): %s\n", $2); free($2); }
-    | IDENTIFIER INC                   { printf("=> Incremento (pos): %s\n", $1); free($1); }
-    | DEC IDENTIFIER                   { printf("=> Decremento (pre): %s\n", $2); free($2); }
-    | IDENTIFIER DEC                   { printf("=> Decremento (pos): %s\n", $1); free($1); }
+    : IDENTIFIER ASSIGN expressao
+        {
+            $$ = semantico_checa_atribuicao($1, $3, yylineno);
+            printf("=> Atribuicao: %s\n", $1);
+            free($1);
+        }
+    | IDENTIFIER ADD_ASSIGN expressao
+        {
+            $$ = semantico_checa_atribuicao_composta($1, "+=", $3, yylineno);
+            printf("=> Atribuicao composta (+=): %s\n", $1);
+            free($1);
+        }
+    | IDENTIFIER SUB_ASSIGN expressao
+        {
+            $$ = semantico_checa_atribuicao_composta($1, "-=", $3, yylineno);
+            printf("=> Atribuicao composta (-=): %s\n", $1);
+            free($1);
+        }
+    | IDENTIFIER MUL_ASSIGN expressao
+        {
+            $$ = semantico_checa_atribuicao_composta($1, "*=", $3, yylineno);
+            printf("=> Atribuicao composta (*=): %s\n", $1);
+            free($1);
+        }
+    | IDENTIFIER DIV_ASSIGN expressao
+        {
+            $$ = semantico_checa_atribuicao_composta($1, "/=", $3, yylineno);
+            printf("=> Atribuicao composta (/=): %s\n", $1);
+            free($1);
+        }
+    | expressao OR expressao
+        {
+            op_logica("||");
+            $$ = semantico_checa_op_logico("||", $1, $3, yylineno);
+        }
+    | expressao AND expressao
+        {
+            op_logica("&&");
+            $$ = semantico_checa_op_logico("&&", $1, $3, yylineno);
+        }
+    | expressao EQ expressao
+        {
+            op_relacional("==");
+            $$ = semantico_checa_op_relacional("==", $1, $3, yylineno);
+        }
+    | expressao NE expressao
+        {
+            op_relacional("!=");
+            $$ = semantico_checa_op_relacional("!=", $1, $3, yylineno);
+        }
+    | expressao LT expressao
+        {
+            op_relacional("<");
+            $$ = semantico_checa_op_relacional("<", $1, $3, yylineno);
+        }
+    | expressao GT expressao
+        {
+            op_relacional(">");
+            $$ = semantico_checa_op_relacional(">", $1, $3, yylineno);
+        }
+    | expressao LE expressao
+        {
+            op_relacional("<=");
+            $$ = semantico_checa_op_relacional("<=", $1, $3, yylineno);
+        }
+    | expressao GE expressao
+        {
+            op_relacional(">=");
+            $$ = semantico_checa_op_relacional(">=", $1, $3, yylineno);
+        }
+    | expressao PLUS expressao
+        {
+            op_aritmetica("+");
+            $$ = semantico_checa_op_aritmetico("+", $1, $3, yylineno);
+        }
+    | expressao MINUS expressao
+        {
+            op_aritmetica("-");
+            $$ = semantico_checa_op_aritmetico("-", $1, $3, yylineno);
+        }
+    | expressao TIMES expressao
+        {
+            op_aritmetica("*");
+            $$ = semantico_checa_op_aritmetico("*", $1, $3, yylineno);
+        }
+    | expressao DIVIDE expressao
+        {
+            op_aritmetica("/");
+            $$ = semantico_checa_op_aritmetico("/", $1, $3, yylineno);
+        }
+    | expressao MOD expressao
+        {
+            op_aritmetica("%");
+            $$ = semantico_checa_op_aritmetico("%", $1, $3, yylineno);
+        }
+    | NOT expressao
+        {
+            op_logica("!");
+            $$ = semantico_checa_op_unario("!", $2, yylineno);
+        }
+    | MINUS expressao %prec NOT
+        {
+            op_aritmetica("- (unario)");
+            $$ = semantico_checa_op_unario("-", $2, yylineno);
+        }
+    | INC IDENTIFIER
+        {
+            $$ = semantico_checa_inc_dec($2, "++", yylineno);
+            printf("=> Incremento (pre): %s\n", $2);
+            free($2);
+        }
+    | IDENTIFIER INC
+        {
+            $$ = semantico_checa_inc_dec($1, "++", yylineno);
+            printf("=> Incremento (pos): %s\n", $1);
+            free($1);
+        }
+    | DEC IDENTIFIER
+        {
+            $$ = semantico_checa_inc_dec($2, "--", yylineno);
+            printf("=> Decremento (pre): %s\n", $2);
+            free($2);
+        }
+    | IDENTIFIER DEC
+        {
+            $$ = semantico_checa_inc_dec($1, "--", yylineno);
+            printf("=> Decremento (pos): %s\n", $1);
+            free($1);
+        }
     | LPAREN expressao RPAREN
-    | IDENTIFIER LPAREN argumentos_opt RPAREN { printf("=> Chamada de funcao: %s\n", $1); free($1); }
-    | IDENTIFIER { free($1); }
+        {
+            $$ = $2;
+        }
+    | IDENTIFIER LPAREN argumentos_opt RPAREN
+        {
+            $$ = semantico_checa_chamada($1, &$3, yylineno);
+            printf("=> Chamada de funcao: %s\n", $1);
+            free($1);
+            semantico_libera_args(&$3);
+        }
+    | IDENTIFIER
+        {
+            $$ = semantico_checa_identificador($1, yylineno);
+            free($1);
+        }
     | INT_LITERAL
+        {
+            $$ = semantico_literal_int(yylineno);
+        }
     | FLOAT_LITERAL
-    | CHAR_LITERAL   { free($1); }
-    | STRING_LITERAL { free($1); }
+        {
+            $$ = semantico_literal_float(yylineno);
+        }
+    | CHAR_LITERAL
+        {
+            $$ = semantico_literal_char(yylineno);
+            free($1);
+        }
+    | STRING_LITERAL
+        {
+            $$ = semantico_literal_string(yylineno);
+            free($1);
+        }
     ;
 
 argumentos_opt
     : %empty
+        {
+            $$.types = NULL;
+            $$.lines = NULL;
+            $$.func_names = NULL;
+            $$.count = 0;
+            $$.capacity = 0;
+        }
     | argumentos
+        {
+            $$ = $1;
+        }
     ;
 
 argumentos
     : expressao
+        {
+            $$ = semantico_cria_args($1);
+        }
     | argumentos COMMA expressao
+        {
+            $$ = semantico_adiciona_arg($1, $3);
+        }
     ;
 
 %%
