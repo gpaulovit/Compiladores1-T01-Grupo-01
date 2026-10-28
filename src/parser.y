@@ -49,6 +49,19 @@ static void op_logica(const char *op)     { n_logicas++;     printf("   . logica
 
 /* Montagem dos nós de expressão, anotados com o tipo da análise semântica.
  * Os nomes vêm do strdup do scanner e passam a pertencer ao nó. */
+static ExpType tipo_exp(const char *tipo) {
+    if (strcmp(tipo, "int") == 0)   return EXP_TYPE_INT;
+    if (strcmp(tipo, "float") == 0) return EXP_TYPE_FLOAT;
+    return EXP_TYPE_VOID;
+}
+
+static No *no_declaracao(const char *tipo, char *nome, No *init, int linha) {
+    No *n = ast_texto(NO_DECL_VAR, nome, linha);
+    n->tipo = tipo_exp(tipo);
+    n->filhos[0] = init;
+    return n;
+}
+
 static No *no_tipado(No *n, SemanticExpr sem) {
     n->tipo = sem.type;
     return n;
@@ -99,6 +112,9 @@ static No *no_incdec(Categoria cat, const char *op, char *nome, SemanticExpr sem
 
     No *no;
 
+    /* Lista de declarações "int a, b = 2;": o tipo comum e os nós DeclVar. */
+    struct { const char *tipo; No *no; } decls;
+
     /* Expressões e argumentos: resultado semântico e nó da AST. */
     struct { SemanticExpr sem; No *no; } expr;
     struct { SemanticArgs sem; No *no; } args;
@@ -125,11 +141,13 @@ static No *no_incdec(Categoria cat, const char *op, char *nome, SemanticExpr sem
 %token LBRACE RBRACE LPAREN RPAREN SEMI COMMA
 
 /* Não-terminais com valor semântico */
-%type <tipo> tipo lista_variaveis
+%type <tipo> tipo
+%type <decls> lista_variaveis
 %type <parametros> parametros parametros_opt
 %type <parametro> parametro
 %type <expr> expressao expressao_opt
 %type <args> argumentos argumentos_opt
+%type <no> declaracoes declaracao var_declaracao fun_declaracao
 %type <no> bloco itens_bloco item_bloco comando expressao_comando
 %type <no> comando_if comando_while comando_do_while comando_for comando_return comando_print
 
@@ -147,6 +165,7 @@ static No *no_incdec(Categoria cat, const char *op, char *nome, SemanticExpr sem
 %destructor { semantico_libera_args(&$$.sem); ast_libera($$.no); } <args>
 %destructor { semantico_libera_expr(&$$.sem); ast_libera($$.no); } <expr>
 %destructor { ast_libera($$); } <no>
+%destructor { ast_libera($$.no); } <decls>
 
 /* PRECEDÊNCIA E ASSOCIATIVIDADE */
 %nonassoc LOWER_THAN_ELSE
@@ -178,6 +197,7 @@ programa
       }
       declaracoes
         {
+            ast_raiz = ast_cria(NO_PROGRAMA, @2.first_line, $2, NULL, NULL, NULL);
             printf("\nAnalise sintatica concluida%s.\n",
                    sem_errors > 0 ? ", com erros semanticos" : " com sucesso");
             printf("Expressoes reconhecidas: %d aritmeticas, %d relacionais, %d logicas.\n",
@@ -188,6 +208,9 @@ programa
 declaracoes
     : declaracao
     | declaracoes declaracao
+        {
+            $$ = ast_lista_adiciona($1, $2);
+        }
     ;
 
 declaracao
@@ -197,6 +220,9 @@ declaracao
 
 var_declaracao
     : lista_variaveis SEMI
+        {
+            $$ = $1.no;
+        }
     ;
 
 lista_variaveis
@@ -204,29 +230,29 @@ lista_variaveis
         {
             semantico_checa_declaracao_var($1, $2, yylineno);
             printf("=> Declaracao: %s %s\n", $1, $2);
-            $$ = $1;
-            free($2);
+            $$.tipo = $1;
+            $$.no = no_declaracao($1, $2, NULL, @2.first_line);
         }
     | tipo IDENTIFIER ASSIGN expressao
         {
             semantico_checa_declaracao_var_init($1, $2, $4.sem, yylineno);
             printf("=> Declaracao com inicializacao: %s %s\n", $1, $2);
-            $$ = $1;
-            free($2);
+            $$.tipo = $1;
+            $$.no = no_declaracao($1, $2, $4.no, @2.first_line);
         }
     | lista_variaveis COMMA IDENTIFIER
         {
-            semantico_checa_declaracao_var($1, $3, yylineno);
-            printf("=> Declaracao: %s %s\n", $1, $3);
-            $$ = $1;
-            free($3);
+            semantico_checa_declaracao_var($1.tipo, $3, yylineno);
+            printf("=> Declaracao: %s %s\n", $1.tipo, $3);
+            $$.tipo = $1.tipo;
+            $$.no = ast_lista_adiciona($1.no, no_declaracao($1.tipo, $3, NULL, @3.first_line));
         }
     | lista_variaveis COMMA IDENTIFIER ASSIGN expressao
         {
-            semantico_checa_declaracao_var_init($1, $3, $5.sem, yylineno);
-            printf("=> Declaracao com inicializacao: %s %s\n", $1, $3);
-            $$ = $1;
-            free($3);
+            semantico_checa_declaracao_var_init($1.tipo, $3, $5.sem, yylineno);
+            printf("=> Declaracao com inicializacao: %s %s\n", $1.tipo, $3);
+            $$.tipo = $1.tipo;
+            $$.no = ast_lista_adiciona($1.no, no_declaracao($1.tipo, $3, $5.no, @3.first_line));
         }
     ;
 
@@ -308,13 +334,21 @@ fun_declaracao
 
             semantico_define_funcao_fim();
 
+            No *params = NULL;
             for (size_t i = 0; i < $4.count; i++) {
-                free($4.items[i].name);
+                No *param = ast_texto(NO_PARAM, $4.items[i].name, $4.items[i].line);
+                param->tipo = $4.items[i].type == TYPE_FLOAT ? EXP_TYPE_FLOAT
+                            : $4.items[i].type == TYPE_INT   ? EXP_TYPE_INT
+                            : EXP_TYPE_VOID;
+                params = ast_lista_adiciona(params, param);
             }
 
             free($4.items);
             printf("=> Definicao de funcao: %s\n", $2);
-            free($2);
+            $$ = ast_texto(NO_FUNCAO, $2, @2.first_line);
+            $$->tipo = tipo_exp($1);
+            $$->filhos[0] = params;
+            $$->filhos[1] = ast_cria(NO_BLOCO, @7.first_line, $8, NULL, NULL, NULL);
         }
     ;
 
@@ -412,9 +446,6 @@ itens_bloco
 
 item_bloco
     : var_declaracao
-        {
-            $$ = NULL;
-        }
     | comando
     ;
 
