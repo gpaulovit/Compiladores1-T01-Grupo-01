@@ -26,9 +26,6 @@ static SymbolTable *symbol_table = NULL;
 
 void liberar_tabela_simbolos(void);
 
-/* Contadores das expressões reconhecidas, usados no resumo final. */
-static int n_aritmeticas = 0, n_relacionais = 0, n_logicas = 0;
-
 static DataType converte_tipo(const char *tipo) {
     if (strcmp(tipo, "int") == 0) {
         return TYPE_INT;
@@ -40,12 +37,6 @@ static DataType converte_tipo(const char *tipo) {
 
     return TYPE_VOID;
 }
-
-/* Relatam um operador reconhecido. A ação dispara na REDUÇÃO, então a ordem das
- * linhas reflete a precedência: em "1 + 2 * 3" o '*' é reduzido antes do '+'. */
-static void op_aritmetica(const char *op) { n_aritmeticas++; printf("   . aritmetica: %s\n", op); }
-static void op_relacional(const char *op) { n_relacionais++; printf("   . relacional: %s\n", op); }
-static void op_logica(const char *op)     { n_logicas++;     printf("   . logica: %s\n", op); }
 
 /* Montagem dos nós de expressão, anotados com o tipo da análise semântica.
  * Os nomes vêm do strdup do scanner e passam a pertencer ao nó. */
@@ -200,8 +191,6 @@ programa
             ast_raiz = ast_cria(NO_PROGRAMA, @2.first_line, $2, NULL, NULL, NULL);
             printf("\nAnalise sintatica concluida%s.\n",
                    sem_errors > 0 ? ", com erros semanticos" : " com sucesso");
-            printf("Expressoes reconhecidas: %d aritmeticas, %d relacionais, %d logicas.\n",
-                   n_aritmeticas, n_relacionais, n_logicas);
         }
     ;
 
@@ -229,28 +218,26 @@ lista_variaveis
     : tipo IDENTIFIER
         {
             semantico_checa_declaracao_var($1, $2, yylineno);
-            printf("=> Declaracao: %s %s\n", $1, $2);
             $$.tipo = $1;
             $$.no = no_declaracao($1, $2, NULL, @2.first_line);
         }
     | tipo IDENTIFIER ASSIGN expressao
         {
             semantico_checa_declaracao_var_init($1, $2, $4.sem, yylineno);
-            printf("=> Declaracao com inicializacao: %s %s\n", $1, $2);
+            semantico_libera_expr(&$4.sem);
             $$.tipo = $1;
             $$.no = no_declaracao($1, $2, $4.no, @2.first_line);
         }
     | lista_variaveis COMMA IDENTIFIER
         {
             semantico_checa_declaracao_var($1.tipo, $3, yylineno);
-            printf("=> Declaracao: %s %s\n", $1.tipo, $3);
             $$.tipo = $1.tipo;
             $$.no = ast_lista_adiciona($1.no, no_declaracao($1.tipo, $3, NULL, @3.first_line));
         }
     | lista_variaveis COMMA IDENTIFIER ASSIGN expressao
         {
             semantico_checa_declaracao_var_init($1.tipo, $3, $5.sem, yylineno);
-            printf("=> Declaracao com inicializacao: %s %s\n", $1.tipo, $3);
+            semantico_libera_expr(&$5.sem);
             $$.tipo = $1.tipo;
             $$.no = ast_lista_adiciona($1.no, no_declaracao($1.tipo, $3, $5.no, @3.first_line));
         }
@@ -344,7 +331,6 @@ fun_declaracao
             }
 
             free($4.items);
-            printf("=> Definicao de funcao: %s\n", $2);
             $$ = ast_texto(NO_FUNCAO, $2, @2.first_line);
             $$->tipo = tipo_exp($1);
             $$->filhos[0] = params;
@@ -409,7 +395,6 @@ parametro
             $$.type = converte_tipo($1);
             $$.line = yylineno;
             semantico_checa_declaracao_param($1, $2, yylineno);
-            printf("=> Parametro: %s %s\n", $1, $2);
         }
     ;
 
@@ -465,6 +450,7 @@ expressao_comando
     : expressao SEMI
         {
             semantico_checa_expressao_comando($1.sem, yylineno);
+            semantico_libera_expr(&$1.sem);
             $$ = $1.no;
         }
     | SEMI
@@ -478,13 +464,13 @@ comando_if
     : IF LPAREN expressao RPAREN comando %prec LOWER_THAN_ELSE
         {
             semantico_checa_condicao($3.sem, yylineno);
-            printf("=> Reconheceu IF\n");
+            semantico_libera_expr(&$3.sem);
             $$ = ast_cria(NO_IF, @1.first_line, $3.no, $5, NULL, NULL);
         }
     | IF LPAREN expressao RPAREN comando ELSE comando
         {
             semantico_checa_condicao($3.sem, yylineno);
-            printf("=> Reconheceu IF-ELSE\n");
+            semantico_libera_expr(&$3.sem);
             $$ = ast_cria(NO_IF, @1.first_line, $3.no, $5, $7, NULL);
         }
     ;
@@ -494,7 +480,7 @@ comando_while
     : WHILE LPAREN expressao RPAREN comando
         {
             semantico_checa_condicao($3.sem, yylineno);
-            printf("=> Reconheceu WHILE\n");
+            semantico_libera_expr(&$3.sem);
             $$ = ast_cria(NO_WHILE, @1.first_line, $3.no, $5, NULL, NULL);
         }
     ;
@@ -503,7 +489,7 @@ comando_do_while
     : DO comando WHILE LPAREN expressao RPAREN SEMI
         {
             semantico_checa_condicao($5.sem, yylineno);
-            printf("=> Reconheceu DO-WHILE\n");
+            semantico_libera_expr(&$5.sem);
             $$ = ast_cria(NO_DO_WHILE, @1.first_line, $2, $5.no, NULL, NULL);
         }
     ;
@@ -512,9 +498,11 @@ comando_for
     : FOR LPAREN expressao_opt SEMI expressao_opt SEMI expressao_opt RPAREN comando
         {
             semantico_checa_expressao_comando($3.sem, yylineno);
+            semantico_libera_expr(&$3.sem);
             semantico_checa_condicao($5.sem, yylineno);
+            semantico_libera_expr(&$5.sem);
             semantico_checa_expressao_comando($7.sem, yylineno);
-            printf("=> Reconheceu FOR\n");
+            semantico_libera_expr(&$7.sem);
             $$ = ast_cria(NO_FOR, @1.first_line, $3.no, $5.no, $7.no, $9);
         }
     ;
@@ -528,6 +516,7 @@ comando_return
     | RETURN expressao SEMI
         {
             semantico_checa_retorno($2.sem, yylineno);
+            semantico_libera_expr(&$2.sem);
             $$ = ast_cria(NO_RETURN, @1.first_line, $2.no, NULL, NULL, NULL);
         }
     ;
@@ -537,7 +526,7 @@ comando_print
     : PRINT LPAREN expressao RPAREN SEMI
         {
             semantico_checa_print($3.sem, yylineno);
-            printf("=> Reconheceu comando PRINT\n");
+            semantico_libera_expr(&$3.sem);
             $$ = ast_cria(NO_PRINT, @1.first_line, $3.no, NULL, NULL, NULL);
         }
     ;
@@ -563,145 +552,154 @@ expressao
     : IDENTIFIER ASSIGN expressao
         {
             $$.sem = semantico_checa_atribuicao($1, $3.sem, yylineno);
-            printf("=> Atribuicao: %s\n", $1);
+            semantico_libera_expr(&$3.sem);
             $$.no = no_atribuicao("=", $1, $3.no, $$.sem, @$.first_line);
         }
     | IDENTIFIER ADD_ASSIGN expressao
         {
             $$.sem = semantico_checa_atribuicao_composta($1, "+=", $3.sem, yylineno);
-            printf("=> Atribuicao composta (+=): %s\n", $1);
+            semantico_libera_expr(&$3.sem);
             $$.no = no_atribuicao("+=", $1, $3.no, $$.sem, @$.first_line);
         }
     | IDENTIFIER SUB_ASSIGN expressao
         {
             $$.sem = semantico_checa_atribuicao_composta($1, "-=", $3.sem, yylineno);
-            printf("=> Atribuicao composta (-=): %s\n", $1);
+            semantico_libera_expr(&$3.sem);
             $$.no = no_atribuicao("-=", $1, $3.no, $$.sem, @$.first_line);
         }
     | IDENTIFIER MUL_ASSIGN expressao
         {
             $$.sem = semantico_checa_atribuicao_composta($1, "*=", $3.sem, yylineno);
-            printf("=> Atribuicao composta (*=): %s\n", $1);
+            semantico_libera_expr(&$3.sem);
             $$.no = no_atribuicao("*=", $1, $3.no, $$.sem, @$.first_line);
         }
     | IDENTIFIER DIV_ASSIGN expressao
         {
             $$.sem = semantico_checa_atribuicao_composta($1, "/=", $3.sem, yylineno);
-            printf("=> Atribuicao composta (/=): %s\n", $1);
+            semantico_libera_expr(&$3.sem);
             $$.no = no_atribuicao("/=", $1, $3.no, $$.sem, @$.first_line);
         }
     | expressao OR expressao
         {
-            op_logica("||");
             $$.sem = semantico_checa_op_logico("||", $1.sem, $3.sem, yylineno);
+            semantico_libera_expr(&$1.sem);
+            semantico_libera_expr(&$3.sem);
             $$.no = no_binario("||", $1.no, $3.no, $$.sem, @$.first_line);
         }
     | expressao AND expressao
         {
-            op_logica("&&");
             $$.sem = semantico_checa_op_logico("&&", $1.sem, $3.sem, yylineno);
+            semantico_libera_expr(&$1.sem);
+            semantico_libera_expr(&$3.sem);
             $$.no = no_binario("&&", $1.no, $3.no, $$.sem, @$.first_line);
         }
     | expressao EQ expressao
         {
-            op_relacional("==");
             $$.sem = semantico_checa_op_relacional("==", $1.sem, $3.sem, yylineno);
+            semantico_libera_expr(&$1.sem);
+            semantico_libera_expr(&$3.sem);
             $$.no = no_binario("==", $1.no, $3.no, $$.sem, @$.first_line);
         }
     | expressao NE expressao
         {
-            op_relacional("!=");
             $$.sem = semantico_checa_op_relacional("!=", $1.sem, $3.sem, yylineno);
+            semantico_libera_expr(&$1.sem);
+            semantico_libera_expr(&$3.sem);
             $$.no = no_binario("!=", $1.no, $3.no, $$.sem, @$.first_line);
         }
     | expressao LT expressao
         {
-            op_relacional("<");
             $$.sem = semantico_checa_op_relacional("<", $1.sem, $3.sem, yylineno);
+            semantico_libera_expr(&$1.sem);
+            semantico_libera_expr(&$3.sem);
             $$.no = no_binario("<", $1.no, $3.no, $$.sem, @$.first_line);
         }
     | expressao GT expressao
         {
-            op_relacional(">");
             $$.sem = semantico_checa_op_relacional(">", $1.sem, $3.sem, yylineno);
+            semantico_libera_expr(&$1.sem);
+            semantico_libera_expr(&$3.sem);
             $$.no = no_binario(">", $1.no, $3.no, $$.sem, @$.first_line);
         }
     | expressao LE expressao
         {
-            op_relacional("<=");
             $$.sem = semantico_checa_op_relacional("<=", $1.sem, $3.sem, yylineno);
+            semantico_libera_expr(&$1.sem);
+            semantico_libera_expr(&$3.sem);
             $$.no = no_binario("<=", $1.no, $3.no, $$.sem, @$.first_line);
         }
     | expressao GE expressao
         {
-            op_relacional(">=");
             $$.sem = semantico_checa_op_relacional(">=", $1.sem, $3.sem, yylineno);
+            semantico_libera_expr(&$1.sem);
+            semantico_libera_expr(&$3.sem);
             $$.no = no_binario(">=", $1.no, $3.no, $$.sem, @$.first_line);
         }
     | expressao PLUS expressao
         {
-            op_aritmetica("+");
             $$.sem = semantico_checa_op_aritmetico("+", $1.sem, $3.sem, yylineno);
+            semantico_libera_expr(&$1.sem);
+            semantico_libera_expr(&$3.sem);
             $$.no = no_binario("+", $1.no, $3.no, $$.sem, @$.first_line);
         }
     | expressao MINUS expressao
         {
-            op_aritmetica("-");
             $$.sem = semantico_checa_op_aritmetico("-", $1.sem, $3.sem, yylineno);
+            semantico_libera_expr(&$1.sem);
+            semantico_libera_expr(&$3.sem);
             $$.no = no_binario("-", $1.no, $3.no, $$.sem, @$.first_line);
         }
     | expressao TIMES expressao
         {
-            op_aritmetica("*");
             $$.sem = semantico_checa_op_aritmetico("*", $1.sem, $3.sem, yylineno);
+            semantico_libera_expr(&$1.sem);
+            semantico_libera_expr(&$3.sem);
             $$.no = no_binario("*", $1.no, $3.no, $$.sem, @$.first_line);
         }
     | expressao DIVIDE expressao
         {
-            op_aritmetica("/");
             $$.sem = semantico_checa_op_aritmetico("/", $1.sem, $3.sem, yylineno);
+            semantico_libera_expr(&$1.sem);
+            semantico_libera_expr(&$3.sem);
             $$.no = no_binario("/", $1.no, $3.no, $$.sem, @$.first_line);
         }
     | expressao MOD expressao
         {
-            op_aritmetica("%");
             $$.sem = semantico_checa_op_aritmetico("%", $1.sem, $3.sem, yylineno);
+            semantico_libera_expr(&$1.sem);
+            semantico_libera_expr(&$3.sem);
             $$.no = no_binario("%", $1.no, $3.no, $$.sem, @$.first_line);
         }
     | NOT expressao
         {
-            op_logica("!");
             $$.sem = semantico_checa_op_unario("!", $2.sem, yylineno);
+            semantico_libera_expr(&$2.sem);
             $$.no = no_tipado(ast_op(NO_UNARIO, "!", @$.first_line, $2.no, NULL), $$.sem);
         }
     | MINUS expressao %prec NOT
         {
-            op_aritmetica("- (unario)");
             $$.sem = semantico_checa_op_unario("-", $2.sem, yylineno);
+            semantico_libera_expr(&$2.sem);
             $$.no = no_tipado(ast_op(NO_UNARIO, "-", @$.first_line, $2.no, NULL), $$.sem);
         }
     | INC IDENTIFIER
         {
             $$.sem = semantico_checa_inc_dec($2, "++", yylineno);
-            printf("=> Incremento (pre): %s\n", $2);
             $$.no = no_incdec(NO_PRE_INCDEC, "++", $2, $$.sem, @$.first_line);
         }
     | IDENTIFIER INC
         {
             $$.sem = semantico_checa_inc_dec($1, "++", yylineno);
-            printf("=> Incremento (pos): %s\n", $1);
             $$.no = no_incdec(NO_POS_INCDEC, "++", $1, $$.sem, @$.first_line);
         }
     | DEC IDENTIFIER
         {
             $$.sem = semantico_checa_inc_dec($2, "--", yylineno);
-            printf("=> Decremento (pre): %s\n", $2);
             $$.no = no_incdec(NO_PRE_INCDEC, "--", $2, $$.sem, @$.first_line);
         }
     | IDENTIFIER DEC
         {
             $$.sem = semantico_checa_inc_dec($1, "--", yylineno);
-            printf("=> Decremento (pos): %s\n", $1);
             $$.no = no_incdec(NO_POS_INCDEC, "--", $1, $$.sem, @$.first_line);
         }
     | LPAREN expressao RPAREN
@@ -711,7 +709,6 @@ expressao
     | IDENTIFIER LPAREN argumentos_opt RPAREN
         {
             $$.sem = semantico_checa_chamada($1, &$3.sem, yylineno);
-            printf("=> Chamada de funcao: %s\n", $1);
             semantico_libera_args(&$3.sem);
             $$.no = ast_texto(NO_CHAMADA, $1, @$.first_line);
             $$.no->filhos[0] = $3.no;
@@ -764,11 +761,13 @@ argumentos
     : expressao
         {
             $$.sem = semantico_cria_args($1.sem);
+            semantico_libera_expr(&$1.sem);
             $$.no = $1.no;
         }
     | argumentos COMMA expressao
         {
             $$.sem = semantico_adiciona_arg($1.sem, $3.sem);
+            semantico_libera_expr(&$3.sem);
             $$.no = ast_lista_adiciona($1.no, $3.no);
         }
     ;
