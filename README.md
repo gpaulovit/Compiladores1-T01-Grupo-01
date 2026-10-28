@@ -4,7 +4,21 @@
 
 Projeto da equipe 01 da disciplina de Compiladores 1. O objetivo é traduzir um subconjunto da linguagem C (mini-C) para TypeScript usando as etapas clássicas de um compilador: análise léxica, análise sintática, AST, validações semânticas básicas e geração de código final.
 
-## Equipe
+## Compilação e testes
+
+Em terminal Linux/MSYS2 com GCC, Flex, Bison, GNU Make, Bash e coreutils:
+
+```bash
+make
+make test
+make test-runner
+```
+
+O corpus e as dependências semânticas ainda pendentes estão documentados em
+[testes/sprint3/README.md](testes/sprint3/README.md). A suíte completa deve
+falhar enquanto os erros semânticos da Frente C (#19) não forem detectados.
+
+## Equipe atual (4 integrantes)
 
 <table align="center">
   <tr>
@@ -27,12 +41,6 @@ Projeto da equipe 01 da disciplina de Compiladores 1. O objetivo é traduzir um 
       </a>
     </td>
     <td align="center">
-      <a href="https://github.com/henriquemendeselias">
-        <img src="https://github.com/henriquemendeselias.png" width="120px;" alt="Foto de Henrique Mendes"/><br>
-        <sub><b>Henrique Mendes</b></sub>
-      </a>
-    </td>
-    <td align="center">
       <a href="https://github.com/gpaulovit">
         <img src="https://github.com/gpaulovit.png" width="120px;" alt="Foto de Paulo Vitor Gomes"/><br>
         <sub><b>Paulo Vitor Gomes</b></sub>
@@ -40,3 +48,5 @@ Projeto da equipe 01 da disciplina de Compiladores 1. O objetivo é traduzir um 
     </td>
   </tr>
 </table>
+
+Henrique Mendes deixou a equipe após a Sprint 1. Sua contribuição ao reconhecimento de palavras reservadas e identificadores permanece creditada no [PR #6](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/6) e no histórico da Sprint 1.
