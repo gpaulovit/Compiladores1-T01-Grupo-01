@@ -81,13 +81,47 @@ TacInstr *tac_emite(TacPrograma *p, TacOp cat, const char *op,
     return in;
 }
 
-// Base de expressoes; a Frente A expande declaracoes, atribuicoes e operadores
+//Avaliacao em curto-circuito para && e ||
+static const char *gera_curto_circuito(TacPrograma *p, const No *n) {
+    const char *res = tac_novo_temp(p);
+    const char *rot_curto = tac_novo_rotulo(p);
+    const char *rot_fim = tac_novo_rotulo(p);
+    int eh_and = (strcmp(n->op, "&&") == 0);
+
+    const char *esq = tac_gera_expr(p, n->filhos[0]);
+    tac_emite(p, eh_and ? TAC_IFZ : TAC_IFNZ, NULL, rot_curto, esq, NULL);
+
+    const char *dir = tac_gera_expr(p, n->filhos[1]);
+    tac_emite(p, eh_and ? TAC_IFZ : TAC_IFNZ, NULL, rot_curto, dir, NULL);
+
+    tac_emite(p, TAC_COPY, NULL, res, eh_and ? "1" : "0", NULL);
+    tac_emite(p, TAC_GOTO, NULL, rot_fim, NULL, NULL);
+
+    tac_emite(p, TAC_LABEL, NULL, rot_curto, NULL, NULL);
+    tac_emite(p, TAC_COPY, NULL, res, eh_and ? "0" : "1", NULL);
+
+    tac_emite(p, TAC_LABEL, NULL, rot_fim, NULL, NULL);
+    return res;
+}
+
+//Base de expressoes; a Frente A completa atribuicoes, unarios e inc/dec
 const char *tac_gera_expr(TacPrograma *p, const No *n) {
     if (n == NULL) {
         return NULL;
     }
     char buf[64];
     switch (n->cat) {
+        case NO_BINARIO:
+            if (strcmp(n->op, "&&") == 0 || strcmp(n->op, "||") == 0) {
+                return gera_curto_circuito(p, n);
+            }
+            {
+                const char *esq = tac_gera_expr(p, n->filhos[0]);
+                const char *dir = tac_gera_expr(p, n->filhos[1]);
+                const char *res = tac_novo_temp(p);
+                tac_emite(p, TAC_BINARIO, n->op, res, esq, dir);
+                return res;
+            }
         case NO_ID:
         case NO_LIT_CHAR:
         case NO_LIT_STRING:
@@ -103,12 +137,84 @@ const char *tac_gera_expr(TacPrograma *p, const No *n) {
     }
 }
 
+static void gera_if(TacPrograma *p, const No *n) {
+    const char *cond = tac_gera_expr(p, n->filhos[0]);
+    if (n->filhos[2] == NULL) {
+        const char *rot_fim = tac_novo_rotulo(p);
+        tac_emite(p, TAC_IFZ, NULL, rot_fim, cond, NULL);
+        tac_gera_no(p, n->filhos[1]);
+        tac_emite(p, TAC_LABEL, NULL, rot_fim, NULL, NULL);
+    } else {
+        const char *rot_senao = tac_novo_rotulo(p);
+        const char *rot_fim = tac_novo_rotulo(p);
+        tac_emite(p, TAC_IFZ, NULL, rot_senao, cond, NULL);
+        tac_gera_no(p, n->filhos[1]);
+        tac_emite(p, TAC_GOTO, NULL, rot_fim, NULL, NULL);
+        tac_emite(p, TAC_LABEL, NULL, rot_senao, NULL, NULL);
+        tac_gera_no(p, n->filhos[2]);
+        tac_emite(p, TAC_LABEL, NULL, rot_fim, NULL, NULL);
+    }
+}
+
+static void gera_while(TacPrograma *p, const No *n) {
+    const char *rot_inicio = tac_novo_rotulo(p);
+    const char *rot_fim = tac_novo_rotulo(p);
+    tac_emite(p, TAC_LABEL, NULL, rot_inicio, NULL, NULL);
+    const char *cond = tac_gera_expr(p, n->filhos[0]);
+    tac_emite(p, TAC_IFZ, NULL, rot_fim, cond, NULL);
+    tac_gera_no(p, n->filhos[1]);
+    tac_emite(p, TAC_GOTO, NULL, rot_inicio, NULL, NULL);
+    tac_emite(p, TAC_LABEL, NULL, rot_fim, NULL, NULL);
+}
+
+static void gera_do_while(TacPrograma *p, const No *n) {
+    const char *rot_inicio = tac_novo_rotulo(p);
+    tac_emite(p, TAC_LABEL, NULL, rot_inicio, NULL, NULL);
+    tac_gera_no(p, n->filhos[0]);
+    const char *cond = tac_gera_expr(p, n->filhos[1]);
+    tac_emite(p, TAC_IFNZ, NULL, rot_inicio, cond, NULL);
+}
+
+static void gera_for(TacPrograma *p, const No *n) {
+    const char *rot_inicio = tac_novo_rotulo(p);
+    const char *rot_fim = (n->filhos[1] != NULL) ? tac_novo_rotulo(p) : NULL;
+
+    if (n->filhos[0] != NULL) {
+        (void)tac_gera_expr(p, n->filhos[0]);
+    }
+    tac_emite(p, TAC_LABEL, NULL, rot_inicio, NULL, NULL);
+    if (n->filhos[1] != NULL) {
+        const char *cond = tac_gera_expr(p, n->filhos[1]);
+        tac_emite(p, TAC_IFZ, NULL, rot_fim, cond, NULL);
+    }
+    tac_gera_no(p, n->filhos[3]);
+    if (n->filhos[2] != NULL) {
+        (void)tac_gera_expr(p, n->filhos[2]);
+    }
+    tac_emite(p, TAC_GOTO, NULL, rot_inicio, NULL, NULL);
+    if (rot_fim != NULL) {
+        tac_emite(p, TAC_LABEL, NULL, rot_fim, NULL, NULL);
+    }
+}
+
 void tac_gera_no(TacPrograma *p, const No *n) {
     for (; n != NULL; n = n->prox) {
         switch (n->cat) {
             case NO_PROGRAMA:
             case NO_BLOCO:
                 tac_gera_no(p, n->filhos[0]);
+                break;
+            case NO_IF:
+                gera_if(p, n);
+                break;
+            case NO_WHILE:
+                gera_while(p, n);
+                break;
+            case NO_DO_WHILE:
+                gera_do_while(p, n);
+                break;
+            case NO_FOR:
+                gera_for(p, n);
                 break;
             case NO_VAZIO:
                 break;
