@@ -8,6 +8,9 @@
 
 /* Quantidade de erros léxicos encontrados; lido por src/main.c */
 int lex_errors = 0;
+
+/* Posição do token para o %locations do parser (@n nas ações). */
+#define YY_USER_ACTION yylloc.first_line = yylloc.last_line = yylineno;
 %}
 
 %option noyywrap
