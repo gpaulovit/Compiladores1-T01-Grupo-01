@@ -1,9 +1,10 @@
 /* Ponto de entrada do compilador Mini-C: lê o código-fonte da entrada padrão.
- * Uso: ./build/compilador [--ast] < programa.c */
+ * Uso: ./build/compilador [--ast | --tac] < programa.c */
 
 #include <stdio.h>
 #include <string.h>
 #include "ast.h"
+#include "tac.h"
 
 int yyparse(void);
 void liberar_tabela_simbolos(void);
@@ -13,10 +14,13 @@ extern No *ast_raiz;     /* definido em parser.y */
 
 int main(int argc, char **argv) {
     int mostra_ast = 0;
+    int mostra_tac = 0;
     if (argc == 2 && strcmp(argv[1], "--ast") == 0) {
         mostra_ast = 1;
+    } else if (argc == 2 && strcmp(argv[1], "--tac") == 0) {
+        mostra_tac = 1;
     } else if (argc > 1) {
-        fprintf(stderr, "Uso: %s [--ast] < programa.c\n", argv[0]);
+        fprintf(stderr, "Uso: %s [--ast | --tac] < programa.c\n", argv[0]);
         return 2;
     }
 
@@ -26,6 +30,11 @@ int main(int argc, char **argv) {
     /* Com erro léxico ou sintático a árvore está incompleta e não é impressa. */
     if (mostra_ast && erro_sintatico == 0 && lex_errors == 0) {
         ast_imprime(ast_raiz, stdout);
+    }
+    if (mostra_tac && erro_sintatico == 0 && lex_errors == 0 && sem_errors == 0) {
+        TacPrograma *tac = tac_gera(ast_raiz);
+        tac_imprime(tac, stdout);
+        tac_libera(tac);
     }
     ast_libera(ast_raiz);
 

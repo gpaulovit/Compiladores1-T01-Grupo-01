@@ -33,8 +33,8 @@ $(B)/lex.yy.c: src/scanner.l $(B)/y.tab.h | $(B)
 	flex -o $@ src/scanner.l
 
 # Módulos chamados pelas ações do parser; todo binário que linka y.tab.c precisa deles.
-MODULOS = src/symtab.c src/semantico.c src/ast.c
-HEADERS = src/symtab.h src/semantico.h src/ast.h
+MODULOS = src/symtab.c src/semantico.c src/ast.c src/tac.c
+HEADERS = src/symtab.h src/semantico.h src/ast.h src/tac.h
 
 $(B)/compilador: $(B)/y.tab.c $(B)/lex.yy.c src/main.c $(MODULOS) $(HEADERS)
 	$(CC) $(CFLAGS) -o $@ $(B)/y.tab.c $(B)/lex.yy.c src/main.c $(MODULOS)
