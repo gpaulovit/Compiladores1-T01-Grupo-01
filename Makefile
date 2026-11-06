@@ -19,7 +19,7 @@ lex-debug: $(B)/lex_debug
 check-grammar: | $(B)
 	bison -Werror=conflicts-sr -Werror=conflicts-rr -Wcounterexamples -d -o $(B)/check-parser.c src/parser.y
 
-test: all check-grammar test-gerador-ts
+test: all check-grammar test-gerador-ts test-sprint4
 	bash testes/run-tests.sh ./$(B)/compilador $(TEST_SUITES)
 
 test-runner:
@@ -27,6 +27,9 @@ test-runner:
 
 test-gerador-ts: all
 	bash testes/run-gerador-ts.sh ./$(B)/compilador
+
+test-sprint4: all
+	bash testes/sprint4/run.sh ./$(B)/compilador
 
 # O Bison roda primeiro: gera y.tab.h, que o scanner inclui.
 $(B)/y.tab.c $(B)/y.tab.h: src/parser.y | $(B)
@@ -36,8 +39,8 @@ $(B)/lex.yy.c: src/scanner.l $(B)/y.tab.h | $(B)
 	flex -o $@ src/scanner.l
 
 # Módulos chamados pelas ações do parser; todo binário que linka y.tab.c precisa deles.
-MODULOS = src/symtab.c src/semantico.c src/ast.c src/gerador_ts.c
-HEADERS = src/symtab.h src/semantico.h src/ast.h src/gerador_ts.h
+MODULOS = src/symtab.c src/semantico.c src/ast.c src/gerador_ts.c src/tac.c
+HEADERS = src/symtab.h src/semantico.h src/ast.h src/gerador_ts.h src/tac.h
 
 $(B)/compilador: $(B)/y.tab.c $(B)/lex.yy.c src/main.c $(MODULOS) $(HEADERS)
 	$(CC) $(CFLAGS) -o $@ $(B)/y.tab.c $(B)/lex.yy.c src/main.c $(MODULOS)
@@ -59,4 +62,4 @@ test-symtab: $(B)/teste_symtab
 clean:
 	rm -rf $(B)
 
-.PHONY: all lex-debug test-symtab clean test check-grammar test-runner test-gerador-ts
+.PHONY: all lex-debug test-symtab clean test check-grammar test-runner test-gerador-ts test-sprint4
