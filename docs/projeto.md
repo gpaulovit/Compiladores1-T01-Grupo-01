@@ -16,7 +16,8 @@ Compilador que traduz um subconjunto da linguagem C (**Mini-C**) para **TypeScri
 
 - **Flex** — geração do analisador léxico
 - **Bison** — geração do analisador sintático
-- Linguagem de implementação: `TODO: confirmar (C/C++, conforme saída padrão do Flex/Bison)`
+- **C** — linguagem de implementação, a mesma do código gerado pelo Flex e pelo Bison; compilado com GCC
+- **GNU Make** — build e testes (`make`, `make test`)
 
 ## Linguagem-fonte: Mini-C
 
@@ -122,7 +123,7 @@ Para assegurar que símbolos compostos não sejam erroneamente quebrados em múl
 
 ### Fora de escopo (decisão consciente)
 
-Os itens abaixo foram avaliados e descartados para este projeto, para manter o escopo executável dentro do cronograma (Sprint 4 — codegen intermediário até 04/11/2026) e por não se encaixarem bem no alvo TypeScript:
+Os itens abaixo foram avaliados e descartados para este projeto, para manter o escopo executável dentro do cronograma (Sprint 4 — geração de código até a P2, em 06/11/2026) e por não se encaixarem bem no alvo TypeScript:
 
 - **Ponteiros** — TypeScript não tem modelo de endereço/memória manual; simular isso seria trabalho artificial sem valor didático proporcional.
 - **Structs/records**.
@@ -235,8 +236,68 @@ O conflito do *dangling else* (`if (a) if (b) x; else y;`) é resolvido por `%pr
 
 ## Linguagem-alvo: TypeScript
 
-`TODO: descrever o subconjunto/estilo de TypeScript gerado como saída (ex.: mapeamento de tipos, estruturas de controle, funções).`
+> **Situação:** em implementação na Sprint 4 ([#30](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/30)). O mapeamento abaixo é o planejado.
+
+| Mini-C | TypeScript |
+|---|---|
+| `int`, `float` | `number` |
+| `void` (retorno de função) | `void` |
+| `int x = 10;` | `let x: number = 10;` |
+| `int soma(int a, int b) { ... }` | `function soma(a: number, b: number): number { ... }` |
+| `if`/`else`, `while`, `do-while`, `for` | as mesmas construções |
+| `print(expr);` | `console.log(expr);` |
+| `a / b` entre `int` | `Math.trunc(a / b)`, porque em TypeScript a divisão seria fracionária |
+| função `main()` | chamada `main();` ao final do arquivo |
+
+O TypeScript é gerado a partir da AST anotada com tipos, e não do código intermediário. A justificativa está em [Decisões técnicas](decisoes-tecnicas.md).
 
 ## Arquitetura do compilador
 
-`TODO: diagrama/descrição das etapas internas (lexer → parser → AST → tabela de símbolos → análise semântica → código intermediário → código final) conforme forem implementadas.`
+```text
+programa.c ──► scanner.l (Flex) ──tokens──► parser.y (Bison, LALR(1))
+                                               │  ações de cada regra
+                                               ├──► semantico.c ◄──► symtab.c
+                                               │      (tipos, escopos, erros)
+                                               └──► ast.c  (nó com o tipo já anotado)
+                                                        │
+                                       main.c ◄─────────┘
+                                         ├── --ast  imprime a árvore
+                                         ├── --tac  código de três endereços   (Sprint 4, #28/#29)
+                                         └── --ts   TypeScript                  (Sprint 4, #30)
+```
+
+| Módulo | Responsabilidade |
+|---|---|
+| `src/scanner.l` | Analisador léxico: 42 tokens, descarte de comentários, erros léxicos com número da linha. Preenche a posição de cada token para o `%locations` do parser. |
+| `src/parser.y` | Gramática do Mini-C, gerada com zero conflitos. Cada regra chama a análise semântica e constrói o nó da AST. |
+| `src/symtab.c` | Tabela de símbolos: pilha de escopos, variáveis, parâmetros e funções (com tipo de retorno e parâmetros). |
+| `src/semantico.c` | Regras semânticas: declaração prévia, redeclaração, tipos, chamadas, `return`, `void` e literais de texto fora do `print`. |
+| `src/ast.c` | Árvore sintática abstrata: criação, impressão indentada (`--ast`) e liberação. |
+| `src/main.c` | Ponto de entrada: lê da entrada padrão e sai com 1 se houver erro léxico, sintático ou semântico. |
+| `src/lex_debug.c` | Ferramenta de depuração: imprime os tokens sem passar pelo parser (`make lex-debug`). |
+
+Hoje a análise semântica roda dentro das ações do parser, durante a análise sintática. Movê-la para uma passagem separada sobre a AST está planejado para a Sprint 5 ([#26](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/26)).
+
+### Exemplo: `--ast`
+
+```text
+$ echo 'int main() { int r = 1 + 2 * 3; print(r); return 0; }' | ./build/compilador --ast
+
+Analise sintatica concluida com sucesso.
+Programa @1
+  Funcao main (int) @1
+    -
+    Bloco @1
+      DeclVar r (int) @1
+        Binario + (int) @1
+          LitInt 1 (int) @1
+          Binario * (int) @1
+            LitInt 2 (int) @1
+            LitInt 3 (int) @1
+      Print @1
+        Id r (int) @1
+      Return @1
+        LitInt 0 (int) @1
+```
+
+A precedência aparece na forma da árvore: o `*` fica abaixo do `+`, então é avaliado primeiro.

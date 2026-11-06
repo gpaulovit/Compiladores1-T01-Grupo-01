@@ -13,8 +13,10 @@ Projeto da equipe 01 da disciplina de **Compiladores 1** (Prof. Dr. Sergio Antô
 
 | Seção | Descrição |
 |---|---|
-| [Equipe](equipe.md) | Integrantes da equipe |
+| [Equipe](equipe.md) | Integrantes e responsáveis por sprint |
 | [Sobre o Projeto](projeto.md) | Escopo, gramática e arquitetura do compilador |
+| [Decisões técnicas](decisoes-tecnicas.md) | O que foi escolhido em cada etapa, e por quê |
+| [Problemas e soluções](problemas-e-solucoes.md) | Dificuldades do projeto e como foram resolvidas |
 | [Cronograma & Marcos](cronograma.md) | Datas de P1, P2/Entrega Final e entrevistas |
 | Sprints 1–6 | Planejamento sprint a sprint (menu lateral) |
 | Resultados | O que foi de fato entregue em cada sprint, com links para PRs e código (menu lateral) |

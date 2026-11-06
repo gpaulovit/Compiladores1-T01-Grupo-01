@@ -1,7 +1,7 @@
 # Sprint 3 — AST & Semântica Inicial
 
 **Período:** 14/10/2026 – 25/10/2026 
-**Status:** Em andamento
+**Status:** Concluído, com atraso: a tabela de símbolos e a análise semântica entraram no `main` em 22/10 e 27/10, e a AST em 03/11 (ver [Resultados da Sprint 3](../resultados/sprint-3.md)).
 
 ## Ponto de partida
 

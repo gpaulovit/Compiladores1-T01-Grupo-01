@@ -9,14 +9,20 @@ Projeto da equipe 01 da disciplina de Compiladores 1. O objetivo é traduzir um 
 Em terminal Linux/MSYS2 com GCC, Flex, Bison, GNU Make, Bash e coreutils:
 
 ```bash
-make
-make test
-make test-runner
+make                                   # gera build/compilador
+./build/compilador < programa.c        # análise léxica, sintática e semântica
+./build/compilador --ast < programa.c  # imprime a árvore sintática abstrata
+
+make test          # compila, verifica a gramática e roda todos os programas de teste
+make test-symtab   # testes unitários da tabela de símbolos
+make test-runner   # testes do próprio executor de testes
+make lex-debug     # imprime os tokens, sem passar pelo parser
 ```
 
-O corpus e as dependências semânticas ainda pendentes estão documentados em
-[testes/sprint3/README.md](testes/sprint3/README.md). A suíte completa deve
-falhar enquanto os erros semânticos da Frente C (#19) não forem detectados.
+O compilador sai com código 1 se encontrar erro léxico, sintático ou semântico.
+Os casos de teste estão em [testes/sprint2](testes/sprint2/README.md) e
+[testes/sprint3](testes/sprint3/README.md). A documentação completa do projeto
+está na [GitPage](https://gpaulovit.github.io/Compiladores1-T01-Grupo-01/).
 
 ## Equipe atual (4 integrantes)
 

@@ -1,6 +1,6 @@
 # Sprint 5 — Otimização & Código Final
 
-**Período:** 05/11/2026 – 29/11/2026
+**Período:** 07/11/2026 – 29/11/2026
 **Status:** `TODO: Planejado / Em andamento / Concluído`
 
 > Voltado para a entrega final do compilador da equipe, esta sprint é dedicada a otimizações, ajustes finais, testes integrados e **preparação para as entrevistas** de 30/11.
@@ -8,7 +8,8 @@
 ## Objetivos Principais
 
 - Introduzir e testar **otimizações** no código intermediário (opcional, mas recomendável).
-- Consolidar a **geração de código final** em TypeScript.
+- Consolidar a **geração de código final** em TypeScript, cuja primeira versão foi antecipada para a P2 (Sprint 4).
+- Mover a análise semântica para uma passagem sobre a AST ([#26](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/26)), adiada da Sprint 4.
 - Realizar **testes integrados** e correções de bugs remanescentes.
 - Preparar a equipe para as entrevistas finais (todos devem dominar o funcionamento e as decisões técnicas do compilador).
 

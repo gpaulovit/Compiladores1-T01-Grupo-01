@@ -1,5 +1,7 @@
 # Sprint 3 — ajustes de gramática e testes
 
+> **Registro histórico.** Este relatório é de 21/10, antes de a análise semântica entrar no `main`; por isso registra 14 testes reprovados. O resultado final da sprint, com os 37 testes aprovados, está em [Resultados da Sprint 3](sprint-3.md).
+
 Registro de 21/10/2026, relativo às issues #16 e #20. Base: `ba8ee5f`.
 Este relatório descreve esta entrega; não declara concluída toda a Sprint 3.
 

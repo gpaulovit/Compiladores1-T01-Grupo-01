@@ -2,7 +2,7 @@
 
 **Período:** 07/09/2026 – 23/09/2026
 **Marco:** [P1](../p1.md) em 23/09/2026 — 23:59
-**Status:** `TODO: Planejado / Em andamento / Concluído`
+**Status:** Concluído
 
 ## Ponto de partida
 
