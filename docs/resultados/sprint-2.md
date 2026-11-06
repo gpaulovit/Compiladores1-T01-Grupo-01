@@ -21,11 +21,11 @@ Ao fim da sprint o compilador reconhece programas Mini-C inteiros, reporta erros
 
 ### 1. Integração léxico → sintático (PR #12)
 
-O `scanner.l` deixou de ser um programa autônomo e passou a ser consumido pelo parser: inclui `y.tab.h`, cada ação retorna o código do token, `yylval` é preenchido para identificadores e literais, e o `main()` saiu para `src/main.c`. Foram criados o `Makefile` e o driver `src/lex_debug.c`, que preserva os testes léxicos da Sprint 1.
+O `scanner.l` deixou de ser um programa autônomo e passou a ser consumido pelo parser: inclui `y.tab.h`, cada ação retorna o código do token, `yylval` é preenchido para identificadores e literais, e o `main()` saiu para `src/main.c`. Foram criados o `Makefile` e o driver `src/lexer/lex_debug.c`, que preserva os testes léxicos da Sprint 1.
 
 ### 2. Gramática do Mini-C (PR #13)
 
-Arquivo [`src/parser.y`](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/blob/main/src/parser.y) com a gramática completa. Dois pontos de projeto:
+Arquivo [`src/parser/parser.y`](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/blob/main/src/parser/parser.y) com a gramática completa. Dois pontos de projeto:
 
 - **Precedência por declaração, não por camadas.** As expressões são escritas de forma ambígua (`expressao : expressao PLUS expressao | ...`) e a ambiguidade é resolvida pelo bloco `%left`/`%right`, ordenado da menor para a maior precedência. É o que mantém a gramática legível e com zero conflitos.
 - **`%prec LOWER_THAN_ELSE`** resolve o *dangling else*, fazendo o `else` ligar-se ao `if` mais próximo.

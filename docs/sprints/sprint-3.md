@@ -41,8 +41,8 @@ A tabela de símbolos (B) não depende de nenhuma outra frente e pode começar n
 
 ## Principais Entregas
 
-- `src/ast.h` e `src/ast.c`, com a AST construída pelo `parser.y` e impressa com `--ast`.
-- `src/symtab.h` e `src/symtab.c`, com pilha de escopos e testes unitários.
+- `src/ast/ast.h` e `src/ast/ast.c`, com a AST construída pelo `parser.y` e impressa com `--ast`.
+- `src/symbols/symtab.h` e `src/symbols/symtab.c`, com pilha de escopos e testes unitários.
 - Passagem semântica detectando, com o número da linha:
   - identificador não declarado;
   - redeclaração;

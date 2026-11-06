@@ -156,7 +156,7 @@ int main() {
 
 ## Gramática formal
 
-Gramática livre de contexto implementada em [`src/parser.y`](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/blob/main/src/parser.y) (Bison). Gerada com **zero conflitos** shift/reduce e reduce/reduce. Os símbolos em MAIÚSCULAS são os tokens produzidos pelo analisador léxico; `ε` indica produção vazia.
+Gramática livre de contexto implementada em [`src/parser/parser.y`](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/blob/main/src/parser/parser.y) (Bison). Gerada com **zero conflitos** shift/reduce e reduce/reduce. Os símbolos em MAIÚSCULAS são os tokens produzidos pelo analisador léxico; `ε` indica produção vazia.
 
 ```bnf
 programa           ::= declaracoes
@@ -366,15 +366,15 @@ programa.c ──► scanner.l (Flex) ──tokens──► parser.y (Bison, LAL
 
 | Módulo | Responsabilidade |
 |---|---|
-| `src/scanner.l` | Analisador léxico: 42 tokens, descarte de comentários, erros léxicos com número da linha. Preenche a posição de cada token para o `%locations` do parser. |
-| `src/parser.y` | Gramática do Mini-C, gerada com zero conflitos. Cada regra chama a análise semântica e constrói o nó da AST. |
-| `src/symtab.c` | Tabela de símbolos: pilha de escopos, variáveis, parâmetros e funções (com tipo de retorno e parâmetros). |
-| `src/semantico.c` | Regras semânticas: declaração prévia, redeclaração, tipos, chamadas, `return`, `void` e literais de texto fora do `print`. |
-| `src/ast.c` | Árvore sintática abstrata: criação, impressão indentada (`--ast`) e liberação. |
-| `src/tac.c` | Código intermediário: percorre a AST anotada e gera código de três endereços (`--tac`). |
-| `src/gerador_ts.c` | Gerador de TypeScript: percorre a AST anotada e escreve o código (`--ts`). |
+| `src/lexer/scanner.l` | Analisador léxico: 42 tokens, descarte de comentários, erros léxicos com número da linha. Preenche a posição de cada token para o `%locations` do parser. |
+| `src/parser/parser.y` | Gramática do Mini-C, gerada com zero conflitos. Cada regra chama a análise semântica e constrói o nó da AST. |
+| `src/symbols/symtab.c` | Tabela de símbolos: pilha de escopos, variáveis, parâmetros e funções (com tipo de retorno e parâmetros). |
+| `src/semantico/semantico.c` | Regras semânticas: declaração prévia, redeclaração, tipos, chamadas, `return`, `void` e literais de texto fora do `print`. |
+| `src/ast/ast.c` | Árvore sintática abstrata: criação, impressão indentada (`--ast`) e liberação. |
+| `src/intermediario/tac.c` | Código intermediário: percorre a AST anotada e gera código de três endereços (`--tac`). |
+| `src/gerador/gerador_ts.c` | Gerador de TypeScript: percorre a AST anotada e escreve o código (`--ts`). |
 | `src/main.c` | Ponto de entrada: lê da entrada padrão e sai com 1 se houver erro léxico, sintático ou semântico. |
-| `src/lex_debug.c` | Ferramenta de depuração: imprime os tokens sem passar pelo parser (`make lex-debug`). |
+| `src/lexer/lex_debug.c` | Ferramenta de depuração: imprime os tokens sem passar pelo parser (`make lex-debug`). |
 
 Hoje a análise semântica roda dentro das ações do parser, durante a análise sintática. Movê-la para uma passagem separada sobre a AST está planejado para a Sprint 5 ([#26](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/26)).
 

@@ -22,11 +22,11 @@ O PR #24 ficou em conflito com a tabela de símbolos e foi fechado; seu conteúd
 
 ## Entregas
 
-### Tabela de símbolos — `src/symtab.c`
+### Tabela de símbolos — `src/symbols/symtab.c`
 
 Pilha de escopos com abertura e fechamento, inserção de variáveis, parâmetros e funções (com tipo de retorno e tipos dos parâmetros), busca no escopo atual e em todos os escopos visíveis. Detecta redeclaração no mesmo escopo e permite sombreamento em escopo interno. Tem testes unitários próprios, que não dependem do parser (`make test-symtab`).
 
-### Análise semântica — `src/semantico.c`
+### Análise semântica — `src/semantico/semantico.c`
 
 Detecta, com o número da linha:
 
@@ -41,7 +41,7 @@ Detecta, com o número da linha:
 
 As regras de tipo estão em [Sobre o Projeto](../projeto.md#regras-de-tipos-e-análise-semântica-sprint-3).
 
-### Árvore sintática abstrata — `src/ast.c`
+### Árvore sintática abstrata — `src/ast/ast.c`
 
 Cada regra do `parser.y` constrói seu nó, e a raiz fica disponível para as etapas seguintes. Cada nó guarda a linha exata da construção e, nas expressões, o tipo calculado pela análise semântica. `./build/compilador --ast < programa.c` imprime a árvore; há um exemplo em [Arquitetura do compilador](../projeto.md#arquitetura-do-compilador).
 
