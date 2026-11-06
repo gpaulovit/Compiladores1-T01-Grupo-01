@@ -14,6 +14,7 @@ int yylex(void);
 void yyerror(const char *msg);
 
 extern int yylineno;
+extern int modo_typescript;
 
 /* Erros semânticos encontrados; lido por src/main.c para definir a saída. */
 int sem_errors = 0;
@@ -184,13 +185,18 @@ programa
               sem_errors++;
               YYABORT;
           }
+
           semantico_init(symbol_table);
       }
       declaracoes
         {
-            ast_raiz = ast_cria(NO_PROGRAMA, @2.first_line, $2, NULL, NULL, NULL);
-            printf("\nAnalise sintatica concluida%s.\n",
-                   sem_errors > 0 ? ", com erros semanticos" : " com sucesso");
+            ast_raiz = ast_cria(NO_PROGRAMA, @2.first_line,
+                                $2, NULL, NULL, NULL);
+
+            if (!modo_typescript) {
+                printf("\nAnalise sintatica concluida%s.\n",
+                    sem_errors > 0 ? ", com erros semanticos" : " com sucesso");
+            }
         }
     ;
 
