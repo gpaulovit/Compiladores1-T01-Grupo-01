@@ -18,7 +18,7 @@ O PR #35 integrou o trabalho das Frentes A, B e D preservando os commits origina
 
 ## Entregas
 
-### Código intermediário — `src/tac.c`
+### Código intermediário — `src/intermediario/tac.c`
 
 Percorre a AST anotada e gera código de três endereços: cada instrução tem no máximo um operador, e os resultados intermediários ficam em temporários (`t0`, `t1`...). As instruções e um exemplo completo estão em [Sobre o Projeto → Código intermediário](../projeto.md#código-intermediário-tac).
 
@@ -28,7 +28,7 @@ Percorre a AST anotada e gera código de três endereços: cada instrução tem 
 - Funções, parâmetros, chamadas com argumentos, recursão, `return` e `print`.
 - Programas com erro léxico, sintático ou semântico não geram TAC.
 
-### Geração de TypeScript — `src/gerador_ts.c`
+### Geração de TypeScript — `src/gerador/gerador_ts.c`
 
 Percorre a AST anotada e escreve TypeScript executável, preservando a semântica de C na divisão inteira e nos valores-verdade. O mapeamento está em [Sobre o Projeto → Linguagem-alvo](../projeto.md#linguagem-alvo-typescript), e o detalhamento da entrega em [Resultados — Geração TypeScript](sprint-4-geracao-typescript.md).
 
@@ -136,7 +136,6 @@ Além da suíte, os 24 programas válidos das Sprints 2 e 3 e dos testes do gera
 
 ## Limitações conhecidas
 
-- **A suíte da Sprint 4 exige Node.js 24 ou superior**, que executa TypeScript removendo as anotações de tipo. Com Node 22, `make test` encerra na verificação de versão; a validação acima foi feita com Node 22 executando os mesmos passos com `--experimental-strip-types`.
 - **O TAC é verificado como texto**, comparado com a referência `.tac`. Não existe um interpretador de TAC, então a execução é verificada pelo TypeScript.
 - **A análise semântica ainda roda dentro das ações do parser** ([#26](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/26)), com a consequência descrita em [Problemas e soluções](../problemas-e-solucoes.md#linha-das-mensagens-semânticas-em-aberto).
 

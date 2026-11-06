@@ -24,7 +24,7 @@ Um caractere inválido ou um literal não fechado é reportado em `stderr`, com 
 
 ### Um driver separado para depurar o léxico
 
-Quando o scanner passou a ser consumido pelo parser, ele deixou de imprimir os tokens. Para não perder os testes do léxico da Sprint 1, o `src/lex_debug.c` imprime o fluxo de tokens sem passar pelo parser (`make lex-debug`). A alternativa, manter `printf` condicionais dentro do scanner, duplicaria cada regra.
+Quando o scanner passou a ser consumido pelo parser, ele deixou de imprimir os tokens. Para não perder os testes do léxico da Sprint 1, o `src/lexer/lex_debug.c` imprime o fluxo de tokens sem passar pelo parser (`make lex-debug`). A alternativa, manter `printf` condicionais dentro do scanner, duplicaria cada regra.
 
 ## Análise sintática
 
@@ -56,7 +56,7 @@ A linguagem não tem tipo `string`. Literais de texto e de caractere são aceito
 
 ### Nó genérico para a AST
 
-Todo nó da AST tem a mesma estrutura: categoria, linha, tipo, operador, valor e até quatro filhos, mais um ponteiro para o próximo item de uma lista. O significado de cada filho por categoria está documentado em `src/ast.h`. A alternativa, uma estrutura própria para cada construção, daria mais verificação em tempo de compilação, mas exigiria muito mais código de criação, impressão e liberação.
+Todo nó da AST tem a mesma estrutura: categoria, linha, tipo, operador, valor e até quatro filhos, mais um ponteiro para o próximo item de uma lista. O significado de cada filho por categoria está documentado em `src/ast/ast.h`. A alternativa, uma estrutura própria para cada construção, daria mais verificação em tempo de compilação, mas exigiria muito mais código de criação, impressão e liberação.
 
 ### Análise semântica dentro das ações do parser
 

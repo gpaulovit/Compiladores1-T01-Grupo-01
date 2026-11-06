@@ -22,7 +22,7 @@ O trabalho da sprint foi dividido em três frentes (issues), cada uma correspond
 
 - Escopo (tipos, operadores, controle, funções, E/S) e itens fora de escopo documentados em [Sobre o Projeto → Linguagem-fonte: Mini-C](../projeto.md#linguagem-fonte-mini-c).
 
-### 2. Analisador léxico (Flex) — [`src/scanner.l`](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/blob/main/src/scanner.l)
+### 2. Analisador léxico (Flex) — [`src/lexer/scanner.l`](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/blob/main/src/lexer/scanner.l)
 
 #### PR #5 — Operadores, delimitadores, literais e comentários
 

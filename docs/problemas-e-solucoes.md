@@ -22,12 +22,6 @@ Registro dos principais problemas do projeto, em ordem cronológica, com a solu�
 
 **Solução.** As Sprints 3 e 4 foram replanejadas em 13/10, com prazos internos e uma ordem explícita entre as frentes (ver [Ajustes no planejamento](cronograma.md#ajustes-no-planejamento)).
 
-### PR em conflito com o restante da Sprint 3
-
-**Problema.** O PR com os ajustes de gramática e a automação dos testes ([#24](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/24)) ficou em conflito com a tabela de símbolos, que já tinha entrado no `main` alterando o mesmo `parser.y`.
-
-**Solução.** O PR foi fechado, e seu conteúdo foi reintegrado no PR da AST ([#27](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/27)), que reescreveu o `parser.y` de qualquer forma.
-
 ## Gramática e build
 
 ### Conflito reduce/reduce ao restringir `void`
@@ -47,18 +41,6 @@ Registro dos principais problemas do projeto, em ordem cronológica, com a solu�
 **Problema.** Depois que a tabela de símbolos entrou, o `lex_debug` deixou de compilar: ele linkava o parser, mas não os módulos que as ações do parser chamam.
 
 **Solução.** O `Makefile` passou a definir a lista `MODULOS`, usada por todo binário que linka o parser ([PR #27](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/27)).
-
-### Interface do código intermediário escrita por outra frente
-
-**Problema.** A interface `tac.h` estava prevista para a Frente A, mas foi a Frente B que a escreveu, junto com o controle de fluxo e as funções. As duas frentes e os testes de execução acabaram entrando no `main` juntos, no último dia da Sprint 4.
-
-**Solução.** O [PR #35](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/35) integrou o trabalho das Frentes A, B e D preservando os commits originais de cada autor, e só entrou com o TAC e a execução do TypeScript verificados pelos testes.
-
-### Testes da Sprint 4 exigem Node.js 24 (em aberto)
-
-**Problema.** Os testes da Sprint 4 executam o TypeScript gerado com Node, e o executor exige Node.js 24 ou superior, que roda TypeScript diretamente. Com Node 22, `make test` encerra antes de rodar os testes.
-
-**Situação.** O requisito está registrado no README dos testes e no README do projeto. Com Node 22, os mesmos testes passam executando o TypeScript com `node --experimental-strip-types`.
 
 ## Análise semântica
 

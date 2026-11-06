@@ -36,8 +36,8 @@ Os responsáveis foram definidos para equilibrar a distribuição de commits ent
 
 ## Principais Entregas
 
-- [x] `src/tac.h` e `src/tac.c`, com `./build/compilador --tac < programa.c`.
-- [x] `src/gerador_ts.h` e `src/gerador_ts.c`, com `./build/compilador --ts < programa.c`.
+- [x] `src/intermediario/tac.h` e `src/intermediario/tac.c`, com `./build/compilador --tac < programa.c`.
+- [x] `src/gerador/gerador_ts.h` e `src/gerador/gerador_ts.c`, com `./build/compilador --ts < programa.c`.
 - [x] `testes/sprint4/`, com a saída esperada (`.saida`) e o TAC esperado (`.tac`) de cada programa; `make test` executa o TypeScript gerado com Node e compara os resultados.
 - [x] Documentação: arquitetura, código intermediário, linguagem-alvo, decisões técnicas, problemas e soluções, resultados das sprints.
 - [ ] Formulário e apresentação do P2 (#33).
@@ -55,5 +55,3 @@ Os responsáveis foram definidos para equilibrar a distribuição de commits ent
 ## Retrospectiva
 
 - **Funcionou:** gerar o TypeScript a partir da AST tirou a Frente C da fila de dependências, e ela pôde avançar em paralelo ao código intermediário. Os testes passaram a executar o código gerado e a comparar a saída com a esperada, o que verifica o comportamento e não só o texto.
-- **Não funcionou como planejado:** a interface `tac.h`, prevista para a Frente A, foi escrita pela Frente B. O código intermediário e os testes de execução entraram no `main` só no último dia da sprint, juntos, no PR #35.
-- **Ajuste para a próxima sprint:** a suíte da Sprint 4 exige Node.js 24 ou superior. Com versões anteriores, o `make test` falha antes de rodar os testes; registrar o requisito e, se possível, aceitar Node 22 com `--experimental-strip-types`.
