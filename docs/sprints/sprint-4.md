@@ -1,28 +1,28 @@
 # Sprint 4 — Código Intermediário, TypeScript & P2
 
-**Período:** 26/10/2026 – 06/11/2026 *(replanejado; ver [Ajustes no planejamento](../cronograma.md#ajustes-no-planejamento))*
+**Período:** 26/10/2026 – 06/11/2026
 **Marco:** [P2 / Entrega Final](../p2.md) em 06/11/2026 — 23:59
-**Status:** Em andamento
+**Status:** Concluído (ver [Resultados da Sprint 4](../resultados/sprint-4.md))
 
 ## Ponto de partida
 
-A Sprint 3 entregou a AST com os tipos anotados, a tabela de símbolos e a análise semântica, com os 37 casos do `make test` passando (ver [Resultados da Sprint 3](../resultados/sprint-3.md)). Falta transformar a árvore em código.
+A Sprint 3 entregou a AST com os tipos anotados, a tabela de símbolos e a análise semântica, com os 37 casos do `make test` passando (ver [Resultados da Sprint 3](../resultados/sprint-3.md)). Faltava transformar a árvore em código.
 
 ## Objetivos Principais
 
-- Implementar a geração de **código intermediário** (código de três endereços).
-- Implementar a geração de **TypeScript**, antecipada da Sprint 5 para a P2 mostrar o compilador funcionando de ponta a ponta.
+- Implementar a geração de **código intermediário** (código de três endereços, TAC).
+- Implementar a geração de **TypeScript**, para a P2 mostrar o compilador funcionando de ponta a ponta.
 - **Testar o código gerado executando-o**, e não apenas verificando que o compilador termina sem erro.
 - Completar a **documentação** do repositório e preparar a **P2**.
 
 ## Frentes de trabalho
 
-| Frente | Issue | Responsável | Foco |
+| Frente | Issue | Responsável | Entrega |
 |---|---|---|---|
-| A | [#28](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/28) | Gabriel Di Angellis | Código intermediário: estrutura, `--tac`, expressões e atribuições |
-| B | [#29](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/29) | Gabriel Diniz | Código intermediário: controle de fluxo, funções e `print` |
-| C | [#30](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/30) | Gustavo Bonifácio | Geração de TypeScript (`--ts`) |
-| D | [#31](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/31) | Gabriel Di Angellis | Testes executando o código gerado |
+| A | [#28](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/28) | Gabriel Di Angellis | Código intermediário: expressões e atribuições — [PR #35](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/35) |
+| B | [#29](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/29) | Gabriel Diniz | Código intermediário: interface `tac.h`, controle de fluxo, funções e `print` — [PR #35](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/35) |
+| C | [#30](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/30) | Gustavo Bonifácio | Geração de TypeScript (`--ts`) — [PR #34](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/34) |
+| D | [#31](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/31) | Gabriel Di Angellis | Testes executando o código gerado — [PR #35](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/35) |
 | E | [#32](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/32) | Paulo Vitor Gomes | Documentação final |
 | P2 | [#33](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/33) | Paulo Vitor Gomes | Formulário e apresentação |
 
@@ -30,22 +30,21 @@ Os responsáveis foram definidos para equilibrar a distribuição de commits ent
 
 ## Dependências
 
-- A Frente B usa a interface `tac.h` da Frente A.
-- A Frente C gera TypeScript a partir da AST, e não do código intermediário, então não depende de A e B (ver [Decisões técnicas](../decisoes-tecnicas.md)).
-- A Frente D executa o que A, B e C geram; os programas e as saídas esperadas podem ser escritos antes.
+- A Frente A usa a interface `tac.h`, que acabou sendo definida pela Frente B junto com o controle de fluxo.
+- A Frente C gera TypeScript a partir da AST, e não do código intermediário, então não dependeu de A e B (ver [Decisões técnicas](../decisoes-tecnicas.md#typescript-gerado-a-partir-da-ast)).
+- A Frente D executa o que A, B e C geram.
 
 ## Principais Entregas
 
-- `src/tac.h` e `src/tac.c`, com `./build/compilador --tac < programa.c`.
-- `src/gerador_ts.h` e `src/gerador_ts.c`, com `./build/compilador --ts < programa.c`.
-- `testes/sprint4/`, com a saída esperada de cada programa e o `make test` executando o TypeScript gerado.
-- Documentação: arquitetura, decisões técnicas, problemas e soluções, resultados das sprints.
-- Formulário do P2 preenchido: <https://forms.office.com/r/gNG6Eb7e71>
-- Apresentação do ponto de controle P2.
+- [x] `src/tac.h` e `src/tac.c`, com `./build/compilador --tac < programa.c`.
+- [x] `src/gerador_ts.h` e `src/gerador_ts.c`, com `./build/compilador --ts < programa.c`.
+- [x] `testes/sprint4/`, com a saída esperada (`.saida`) e o TAC esperado (`.tac`) de cada programa; `make test` executa o TypeScript gerado com Node e compara os resultados.
+- [x] Documentação: arquitetura, código intermediário, linguagem-alvo, decisões técnicas, problemas e soluções, resultados das sprints.
+- [ ] Formulário e apresentação do P2 (#33).
 
 ## Fora desta sprint
 
-- Análise semântica como passagem sobre a AST ([#26](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/26)), adiada para a Sprint 5.
+- Análise semântica como passagem sobre a AST ([#26](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/26)), planejada para a Sprint 5.
 
 ## O que o P2 exige (ver [página do P2](../p2.md))
 
@@ -55,4 +54,6 @@ Os responsáveis foram definidos para equilibrar a distribuição de commits ent
 
 ## Retrospectiva
 
-`TODO: preencher ao final da sprint.`
+- **Funcionou:** gerar o TypeScript a partir da AST tirou a Frente C da fila de dependências, e ela pôde avançar em paralelo ao código intermediário. Os testes passaram a executar o código gerado e a comparar a saída com a esperada, o que verifica o comportamento e não só o texto.
+- **Não funcionou como planejado:** a interface `tac.h`, prevista para a Frente A, foi escrita pela Frente B. O código intermediário e os testes de execução entraram no `main` só no último dia da sprint, juntos, no PR #35.
+- **Ajuste para a próxima sprint:** a suíte da Sprint 4 exige Node.js 24 ou superior. Com versões anteriores, o `make test` falha antes de rodar os testes; registrar o requisito e, se possível, aceitar Node 22 com `--experimental-strip-types`.

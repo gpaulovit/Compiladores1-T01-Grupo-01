@@ -7,12 +7,7 @@
 
 - **Sprints**
   - [Sprint 1 — Formação & Definição](sprints/sprint-1.md)
-<<<<<<< Updated upstream
-  - [Sprint 2 — Léxico & P1](sprints/sprint-2.md)
-
-=======
   - [Sprint 2 — Sintático & P1](sprints/sprint-2.md)
->>>>>>> Stashed changes
   - [Sprint 3 — AST & Semântica Inicial](sprints/sprint-3.md)
   - [Sprint 4 — Código Intermediário, TypeScript & P2](sprints/sprint-4.md)
   - [Sprint 5 — Otimização & Código Final](sprints/sprint-5.md)
@@ -21,11 +16,9 @@
 - **Resultados**
   - [Sprint 1](resultados/sprint-1.md)
   - [Sprint 2](resultados/sprint-2.md)
-<<<<<<< Updated upstream
-  - [Sprint 4 — Geração TypeScript](resultados/sprint-4-geracao-typescript.md)
-=======
   - [Sprint 3](resultados/sprint-3.md)
->>>>>>> Stashed changes
+  - [Sprint 4](resultados/sprint-4.md)
+  - [Sprint 4 — Geração TypeScript](resultados/sprint-4-geracao-typescript.md)
 
 - **Pontos de Controle**
   - [P1](p1.md)

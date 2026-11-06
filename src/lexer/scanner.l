@@ -1,4 +1,4 @@
-/* Fase Léxica - Analisador léxico do Mini-C, integrado ao Bison */
+/* Analisador léxico do Mini-C */
 
 %{
 #include <stdio.h>

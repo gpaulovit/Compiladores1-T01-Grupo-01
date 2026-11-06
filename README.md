@@ -6,14 +6,16 @@ Projeto da equipe 01 da disciplina de Compiladores 1. O objetivo é traduzir um 
 
 ## Compilação e testes
 
-Em terminal Linux/MSYS2 com GCC, Flex, Bison, GNU Make, Bash e coreutils:
+Em terminal Linux/MSYS2 com GCC, Flex, Bison, GNU Make, Bash e coreutils. Os testes da Sprint 4 executam o TypeScript gerado e exigem Node.js 24 ou superior:
 
 ```bash
 make                                   # gera build/compilador
 ./build/compilador < programa.c        # análise léxica, sintática e semântica
 ./build/compilador --ast < programa.c  # imprime a árvore sintática abstrata
+./build/compilador --ts < programa.c   # gera o TypeScript na saída padrão
+./build/compilador --tac < programa.c  # imprime o código de três endereços
 
-make test          # compila, verifica a gramática e roda todos os programas de teste
+make test          # compila, verifica a gramática e roda todas as suítes, executando o TypeScript gerado
 make test-symtab   # testes unitários da tabela de símbolos
 make test-runner   # testes do próprio executor de testes
 make lex-debug     # imprime os tokens, sem passar pelo parser

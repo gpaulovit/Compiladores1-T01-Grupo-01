@@ -48,6 +48,18 @@ Registro dos principais problemas do projeto, em ordem cronológica, com a solu�
 
 **Solução.** O `Makefile` passou a definir a lista `MODULOS`, usada por todo binário que linka o parser ([PR #27](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/27)).
 
+### Interface do código intermediário escrita por outra frente
+
+**Problema.** A interface `tac.h` estava prevista para a Frente A, mas foi a Frente B que a escreveu, junto com o controle de fluxo e as funções. As duas frentes e os testes de execução acabaram entrando no `main` juntos, no último dia da Sprint 4.
+
+**Solução.** O [PR #35](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/35) integrou o trabalho das Frentes A, B e D preservando os commits originais de cada autor, e só entrou com o TAC e a execução do TypeScript verificados pelos testes.
+
+### Testes da Sprint 4 exigem Node.js 24 (em aberto)
+
+**Problema.** Os testes da Sprint 4 executam o TypeScript gerado com Node, e o executor exige Node.js 24 ou superior, que roda TypeScript diretamente. Com Node 22, `make test` encerra antes de rodar os testes.
+
+**Situação.** O requisito está registrado no README dos testes e no README do projeto. Com Node 22, os mesmos testes passam executando o TypeScript com `node --experimental-strip-types`.
+
 ## Análise semântica
 
 ### Vazamento de memória em chamadas de função

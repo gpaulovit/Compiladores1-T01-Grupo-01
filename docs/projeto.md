@@ -234,11 +234,78 @@ O conflito do *dangling else* (`if (a) if (b) x; else y;`) é resolvido por `%pr
 - **Itens de bloco em ordem livre:** declarações e comandos podem ser intercalados; sua ordem no código-fonte é preservada.
 - **Listas de variáveis:** `int a, b = 2, c;` compartilha o tipo, com inicialização individual opcional. A vírgula não é um operador de expressão.
 
+## Código intermediário (TAC)
+
+Implementado na Sprint 4 ([PR #35](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/35)): `./build/compilador --tac < programa.c` imprime o código de três endereços. Cada instrução tem no máximo um operador, e os resultados intermediários ficam em temporários numerados (`t0`, `t1`...). Os desvios usam rótulos numerados (`L0`, `L1`...). Se houver qualquer erro léxico, sintático ou semântico, nada é gerado.
+
+| Instrução | Significado |
+|---|---|
+| `x = y` | cópia |
+| `x = y op z` | operação binária (aritmética ou relacional) |
+| `x = op y` | operação unária (`-`, `!`) |
+| `L0:` | rótulo |
+| `goto L0` | desvio incondicional |
+| `ifz x goto L0` | desvia se `x` for zero (falso) |
+| `ifnz x goto L0` | desvia se `x` for diferente de zero (verdadeiro) |
+| `func f:` / `endfunc f` | início e fim de uma função |
+| `param a` | parâmetro recebido pela função |
+| `arg x` | argumento passado na próxima chamada |
+| `t = call f, n` | chamada de `f` com `n` argumentos, guardando o retorno em `t` |
+| `return [x]` | retorno, com ou sem valor |
+| `print x` | saída |
+
+`&&` e `||` são gerados com desvios, em curto-circuito: o segundo operando só é avaliado quando o primeiro não decide o resultado, como em C.
+
+### Exemplo: `--tac`
+
+O programa de [Exemplo de código-fonte](#exemplo-de-código-fonte) gera:
+
+```text
+func soma:
+  param a
+  param b
+  t0 = a
+  t1 = b
+  t2 = t0 + t1
+  return t2
+endfunc soma
+func main:
+  i = 0
+  total = 0
+  i = 0
+L0:
+  t3 = i
+  t4 = t3 < 5
+  ifz t4 goto L1
+  t5 = i
+  t6 = t5 != 2
+  ifz t6 goto L2
+  t7 = total
+  t8 = i
+  arg t8
+  arg 1
+  t9 = call soma, 2
+  t10 = t7 + t9
+  total = t10
+L2:
+  t11 = i
+  t12 = t11 + 1
+  i = t12
+  goto L0
+L1:
+  t13 = total
+  print t13
+  return 0
+endfunc main
+```
+
+O `for` vira um laço com rótulos: `L0` testa a condição e `L1` é a saída do laço. `L2` é para onde o `if` desvia quando a condição é falsa; logo depois dele vem o incremento `i++` e o `goto L0`, que volta ao teste.
+
 ## Linguagem-alvo: TypeScript
 
-> **Situação:** em implementação na Sprint 4 ([#30](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/30)). O mapeamento abaixo é o planejado.
+Implementada na Sprint 4 ([#30](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/30), [PR #34](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/34)): `./build/compilador --ts < programa.c` escreve o TypeScript na saída padrão. Se houver qualquer erro léxico, sintático ou semântico, nada é gerado e o compilador sai com código 1.
 
-| Mini-C | TypeScript |
+| Mini-C | TypeScript gerado |
 |---|---|
 | `int`, `float` | `number` |
 | `void` (retorno de função) | `void` |
@@ -246,10 +313,41 @@ O conflito do *dangling else* (`if (a) if (b) x; else y;`) é resolvido por `%pr
 | `int soma(int a, int b) { ... }` | `function soma(a: number, b: number): number { ... }` |
 | `if`/`else`, `while`, `do-while`, `for` | as mesmas construções |
 | `print(expr);` | `console.log(expr);` |
-| `a / b` entre `int` | `Math.trunc(a / b)`, porque em TypeScript a divisão seria fracionária |
-| função `main()` | chamada `main();` ao final do arquivo |
+| `a / b` e `a /= b` entre `int` | `Math.trunc(...)`, porque em TypeScript a divisão seria fracionária |
+| `a < b`, `a == b`, `!a` | `Number(...)`: o resultado é `1` ou `0`, como em C |
+| condição de `if`, `while`, `for` | `Boolean(...)` aplicado ao valor numérico |
+| `a && b`, `a \|\| b` | `Boolean(a) && Boolean(b)`, convertido para número |
+| função `main()` sem parâmetros | chamada `main();` ao final do arquivo |
 
-O TypeScript é gerado a partir da AST anotada com tipos, e não do código intermediário. A justificativa está em [Decisões técnicas](decisoes-tecnicas.md).
+Toda expressão é gerada entre parênteses, então a ordem de avaliação é exatamente a da AST, sem depender da tabela de precedência do TypeScript.
+
+### Exemplo: `--ts`
+
+O programa de [Exemplo de código-fonte](#exemplo-de-código-fonte) gera:
+
+```ts
+function soma(a: number, b: number): number {
+    return (a + b);
+}
+
+function main(): number {
+    let i: number = 0;
+    let total: number = 0;
+    for ((i = 0); Boolean(Number((i < 5))); (i++)) {
+        if (Boolean(Number((i != 2)))) {
+            (total += soma(i, 1));
+        }
+    }
+    console.log(total);
+    return 0;
+}
+
+main();
+```
+
+Executado com Node, imprime `12`, o mesmo resultado do programa em C.
+
+O TypeScript é gerado a partir da AST anotada com tipos, e não do código intermediário. A justificativa está em [Decisões técnicas](decisoes-tecnicas.md#typescript-gerado-a-partir-da-ast).
 
 ## Arquitetura do compilador
 
@@ -262,8 +360,8 @@ programa.c ──► scanner.l (Flex) ──tokens──► parser.y (Bison, LAL
                                                         │
                                        main.c ◄─────────┘
                                          ├── --ast  imprime a árvore
-                                         ├── --tac  código de três endereços   (Sprint 4, #28/#29)
-                                         └── --ts   TypeScript                  (Sprint 4, #30)
+                                         ├── --tac  tac.c        → código de três endereços
+                                         └── --ts   gerador_ts.c → TypeScript
 ```
 
 | Módulo | Responsabilidade |
@@ -273,6 +371,8 @@ programa.c ──► scanner.l (Flex) ──tokens──► parser.y (Bison, LAL
 | `src/symtab.c` | Tabela de símbolos: pilha de escopos, variáveis, parâmetros e funções (com tipo de retorno e parâmetros). |
 | `src/semantico.c` | Regras semânticas: declaração prévia, redeclaração, tipos, chamadas, `return`, `void` e literais de texto fora do `print`. |
 | `src/ast.c` | Árvore sintática abstrata: criação, impressão indentada (`--ast`) e liberação. |
+| `src/tac.c` | Código intermediário: percorre a AST anotada e gera código de três endereços (`--tac`). |
+| `src/gerador_ts.c` | Gerador de TypeScript: percorre a AST anotada e escreve o código (`--ts`). |
 | `src/main.c` | Ponto de entrada: lê da entrada padrão e sai com 1 se houver erro léxico, sintático ou semântico. |
 | `src/lex_debug.c` | Ferramenta de depuração: imprime os tokens sem passar pelo parser (`make lex-debug`). |
 

@@ -68,11 +68,47 @@ O parser usa `%locations` do Bison, e o scanner preenche a posição de cada tok
 
 ## Geração de código
 
+### Código de três endereços como representação intermediária
+
+O guia da disciplina sugere código de três endereços. Cada instrução tem no máximo um operador, e os valores intermediários ficam em temporários, o que torna explícita a ordem de avaliação que a AST só expressa pela forma da árvore. As instruções estão em [Código intermediário](projeto.md#código-intermediário-tac).
+
+### Desvios condicionais por zero
+
+Como em C, qualquer valor diferente de zero é verdadeiro. Por isso os desvios condicionais são `ifz` (desvia se for zero) e `ifnz` (desvia se não for), em vez de um desvio que depende de um tipo booleano que a linguagem não tem.
+
+### `&&` e `||` em curto-circuito
+
+Os operadores lógicos não viram uma instrução `and`/`or`: são gerados com desvios, de modo que o segundo operando só é avaliado quando o primeiro não decide o resultado. Isso preserva o comportamento de C quando o segundo operando tem efeito colateral, como uma chamada de função, e é verificado pelo teste `curto_circuito.c`.
+
+### Chamadas com o número de argumentos explícito
+
+Os argumentos são emitidos com `arg`, um por instrução, e a chamada informa quantos usar (`call f, 2`). Assim chamadas aninhadas, como `soma(2, fatorial(5))`, avaliam primeiro a chamada interna sem misturar os argumentos das duas.
+
 ### TypeScript gerado a partir da AST
 
-O guia da disciplina prevê traduzir o código final a partir do código intermediário. O código de três endereços usa rótulos e desvios (`goto`), que TypeScript não tem, e traduzi-los exigiria simular o fluxo de controle com uma máquina de estados, gerando um código difícil de ler. Por isso o TypeScript é gerado a partir da AST anotada, que já tem as estruturas de controle na forma original. O código intermediário continua sendo gerado e exibido com `--tac`.
+O guia da disciplina prevê traduzir o código final a partir do código intermediário. O código de três endereços usa rótulos e desvios (`goto`), que TypeScript não tem, e traduzi-los exigiria simular o fluxo de controle com uma máquina de estados, gerando um código difícil de ler. Por isso o TypeScript é gerado a partir da AST anotada, que já tem as estruturas de controle na forma original ([PR #34](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/34)). O código intermediário é uma etapa à parte, exibida com `--tac` ([#28](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/28), [#29](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/29)).
+
+### Valores-verdade como em C
+
+Em C, `a < b` e `!a` valem `1` ou `0`, e qualquer número diferente de zero é verdadeiro numa condição. Em TypeScript, comparações produzem `true`/`false`. Para manter o comportamento de C, o gerador envolve comparações e operadores lógicos em `Number(...)` e as condições de `if`, `while` e `for` em `Boolean(...)`. Assim `int c = a < b;` guarda `1` ou `0`, como no programa original.
+
+### Divisão inteira preservada
+
+Em TypeScript `7 / 2` vale `3.5`. Quando os dois operandos são `int`, o gerador emite `Math.trunc(...)`, tanto em `/` quanto em `/=`, e o resultado é `3`, como em C. `Math.trunc` também trunca em direção a zero nos negativos (`-7 / 2` dá `-3`), igual a C.
+
+### Expressões sempre entre parênteses
+
+Cada expressão é gerada entre parênteses. O código fica mais carregado, mas a ordem de avaliação é exatamente a da AST, sem depender de a precedência do TypeScript coincidir com a do Mini-C.
+
+### Chamada automática de `main`
+
+Se o programa define `main()` sem parâmetros, o gerador acrescenta `main();` ao final do arquivo, para que o TypeScript execute como o programa em C. Se `main` tiver parâmetros, a chamada não é gerada, porque não há valores para passar.
 
 ## Testes
+
+### Executar o código gerado nos testes
+
+A partir da Sprint 4, os testes não verificam só se o compilador aceita um programa: geram o TypeScript, executam-no com Node e comparam a saída com um arquivo `.saida`. O TAC é comparado com um arquivo `.tac` de referência, porque não há um interpretador de TAC.
 
 ### Mensagem esperada dentro do próprio teste
 
