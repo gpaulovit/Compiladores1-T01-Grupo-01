@@ -16,7 +16,8 @@ Compilador que traduz um subconjunto da linguagem C (**Mini-C**) para **TypeScri
 
 - **Flex** — geração do analisador léxico
 - **Bison** — geração do analisador sintático
-- Linguagem de implementação: `TODO: confirmar (C/C++, conforme saída padrão do Flex/Bison)`
+- **C** — linguagem de implementação, a mesma do código gerado pelo Flex e pelo Bison; compilado com GCC
+- **GNU Make** — build e testes (`make`, `make test`)
 
 ## Linguagem-fonte: Mini-C
 
@@ -122,7 +123,7 @@ Para assegurar que símbolos compostos não sejam erroneamente quebrados em múl
 
 ### Fora de escopo (decisão consciente)
 
-Os itens abaixo foram avaliados e descartados para este projeto, para manter o escopo executável dentro do cronograma (Sprint 4 — codegen intermediário até 04/11/2026) e por não se encaixarem bem no alvo TypeScript:
+Os itens abaixo foram avaliados e descartados para este projeto, para manter o escopo executável dentro do cronograma (Sprint 4 — geração de código até a P2, em 06/11/2026) e por não se encaixarem bem no alvo TypeScript:
 
 - **Ponteiros** — TypeScript não tem modelo de endereço/memória manual; simular isso seria trabalho artificial sem valor didático proporcional.
 - **Structs/records**.
@@ -155,7 +156,7 @@ int main() {
 
 ## Gramática formal
 
-Gramática livre de contexto implementada em [`src/parser.y`](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/blob/main/src/parser.y) (Bison). Gerada com **zero conflitos** shift/reduce e reduce/reduce. Os símbolos em MAIÚSCULAS são os tokens produzidos pelo analisador léxico; `ε` indica produção vazia.
+Gramática livre de contexto implementada em [`src/parser/parser.y`](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/blob/main/src/parser/parser.y) (Bison). Gerada com **zero conflitos** shift/reduce e reduce/reduce. Os símbolos em MAIÚSCULAS são os tokens produzidos pelo analisador léxico; `ε` indica produção vazia.
 
 ```bnf
 programa           ::= declaracoes
@@ -233,10 +234,170 @@ O conflito do *dangling else* (`if (a) if (b) x; else y;`) é resolvido por `%pr
 - **Itens de bloco em ordem livre:** declarações e comandos podem ser intercalados; sua ordem no código-fonte é preservada.
 - **Listas de variáveis:** `int a, b = 2, c;` compartilha o tipo, com inicialização individual opcional. A vírgula não é um operador de expressão.
 
+## Código intermediário (TAC)
+
+Implementado na Sprint 4 ([PR #35](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/35)): `./build/compilador --tac < programa.c` imprime o código de três endereços. Cada instrução tem no máximo um operador, e os resultados intermediários ficam em temporários numerados (`t0`, `t1`...). Os desvios usam rótulos numerados (`L0`, `L1`...). Se houver qualquer erro léxico, sintático ou semântico, nada é gerado.
+
+| Instrução | Significado |
+|---|---|
+| `x = y` | cópia |
+| `x = y op z` | operação binária (aritmética ou relacional) |
+| `x = op y` | operação unária (`-`, `!`) |
+| `L0:` | rótulo |
+| `goto L0` | desvio incondicional |
+| `ifz x goto L0` | desvia se `x` for zero (falso) |
+| `ifnz x goto L0` | desvia se `x` for diferente de zero (verdadeiro) |
+| `func f:` / `endfunc f` | início e fim de uma função |
+| `param a` | parâmetro recebido pela função |
+| `arg x` | argumento passado na próxima chamada |
+| `t = call f, n` | chamada de `f` com `n` argumentos, guardando o retorno em `t` |
+| `return [x]` | retorno, com ou sem valor |
+| `print x` | saída |
+
+`&&` e `||` são gerados com desvios, em curto-circuito: o segundo operando só é avaliado quando o primeiro não decide o resultado, como em C.
+
+### Exemplo: `--tac`
+
+O programa de [Exemplo de código-fonte](#exemplo-de-código-fonte) gera:
+
+```text
+func soma:
+  param a
+  param b
+  t0 = a
+  t1 = b
+  t2 = t0 + t1
+  return t2
+endfunc soma
+func main:
+  i = 0
+  total = 0
+  i = 0
+L0:
+  t3 = i
+  t4 = t3 < 5
+  ifz t4 goto L1
+  t5 = i
+  t6 = t5 != 2
+  ifz t6 goto L2
+  t7 = total
+  t8 = i
+  arg t8
+  arg 1
+  t9 = call soma, 2
+  t10 = t7 + t9
+  total = t10
+L2:
+  t11 = i
+  t12 = t11 + 1
+  i = t12
+  goto L0
+L1:
+  t13 = total
+  print t13
+  return 0
+endfunc main
+```
+
+O `for` vira um laço com rótulos: `L0` testa a condição e `L1` é a saída do laço. `L2` é para onde o `if` desvia quando a condição é falsa; logo depois dele vem o incremento `i++` e o `goto L0`, que volta ao teste.
+
 ## Linguagem-alvo: TypeScript
 
-`TODO: descrever o subconjunto/estilo de TypeScript gerado como saída (ex.: mapeamento de tipos, estruturas de controle, funções).`
+Implementada na Sprint 4 ([#30](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/30), [PR #34](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/pull/34)): `./build/compilador --ts < programa.c` escreve o TypeScript na saída padrão. Se houver qualquer erro léxico, sintático ou semântico, nada é gerado e o compilador sai com código 1.
+
+| Mini-C | TypeScript gerado |
+|---|---|
+| `int`, `float` | `number` |
+| `void` (retorno de função) | `void` |
+| `int x = 10;` | `let x: number = 10;` |
+| `int soma(int a, int b) { ... }` | `function soma(a: number, b: number): number { ... }` |
+| `if`/`else`, `while`, `do-while`, `for` | as mesmas construções |
+| `print(expr);` | `console.log(expr);` |
+| `a / b` e `a /= b` entre `int` | `Math.trunc(...)`, porque em TypeScript a divisão seria fracionária |
+| `a < b`, `a == b`, `!a` | `Number(...)`: o resultado é `1` ou `0`, como em C |
+| condição de `if`, `while`, `for` | `Boolean(...)` aplicado ao valor numérico |
+| `a && b`, `a \|\| b` | `Boolean(a) && Boolean(b)`, convertido para número |
+| função `main()` sem parâmetros | chamada `main();` ao final do arquivo |
+
+Toda expressão é gerada entre parênteses, então a ordem de avaliação é exatamente a da AST, sem depender da tabela de precedência do TypeScript.
+
+### Exemplo: `--ts`
+
+O programa de [Exemplo de código-fonte](#exemplo-de-código-fonte) gera:
+
+```ts
+function soma(a: number, b: number): number {
+    return (a + b);
+}
+
+function main(): number {
+    let i: number = 0;
+    let total: number = 0;
+    for ((i = 0); Boolean(Number((i < 5))); (i++)) {
+        if (Boolean(Number((i != 2)))) {
+            (total += soma(i, 1));
+        }
+    }
+    console.log(total);
+    return 0;
+}
+
+main();
+```
+
+Executado com Node, imprime `12`, o mesmo resultado do programa em C.
+
+O TypeScript é gerado a partir da AST anotada com tipos, e não do código intermediário. A justificativa está em [Decisões técnicas](decisoes-tecnicas.md#typescript-gerado-a-partir-da-ast).
 
 ## Arquitetura do compilador
 
-`TODO: diagrama/descrição das etapas internas (lexer → parser → AST → tabela de símbolos → análise semântica → código intermediário → código final) conforme forem implementadas.`
+```text
+programa.c ──► scanner.l (Flex) ──tokens──► parser.y (Bison, LALR(1))
+                                               │  ações de cada regra
+                                               ├──► semantico.c ◄──► symtab.c
+                                               │      (tipos, escopos, erros)
+                                               └──► ast.c  (nó com o tipo já anotado)
+                                                        │
+                                       main.c ◄─────────┘
+                                         ├── --ast  imprime a árvore
+                                         ├── --tac  tac.c        → código de três endereços
+                                         └── --ts   gerador_ts.c → TypeScript
+```
+
+| Módulo | Responsabilidade |
+|---|---|
+| `src/lexer/scanner.l` | Analisador léxico: 42 tokens, descarte de comentários, erros léxicos com número da linha. Preenche a posição de cada token para o `%locations` do parser. |
+| `src/parser/parser.y` | Gramática do Mini-C, gerada com zero conflitos. Cada regra chama a análise semântica e constrói o nó da AST. |
+| `src/symbols/symtab.c` | Tabela de símbolos: pilha de escopos, variáveis, parâmetros e funções (com tipo de retorno e parâmetros). |
+| `src/semantico/semantico.c` | Regras semânticas: declaração prévia, redeclaração, tipos, chamadas, `return`, `void` e literais de texto fora do `print`. |
+| `src/ast/ast.c` | Árvore sintática abstrata: criação, impressão indentada (`--ast`) e liberação. |
+| `src/intermediario/tac.c` | Código intermediário: percorre a AST anotada e gera código de três endereços (`--tac`). |
+| `src/gerador/gerador_ts.c` | Gerador de TypeScript: percorre a AST anotada e escreve o código (`--ts`). |
+| `src/main.c` | Ponto de entrada: lê da entrada padrão e sai com 1 se houver erro léxico, sintático ou semântico. |
+| `src/lexer/lex_debug.c` | Ferramenta de depuração: imprime os tokens sem passar pelo parser (`make lex-debug`). |
+
+Hoje a análise semântica roda dentro das ações do parser, durante a análise sintática. Movê-la para uma passagem separada sobre a AST está planejado para a Sprint 5 ([#26](https://github.com/gpaulovit/Compiladores1-T01-Grupo-01/issues/26)).
+
+### Exemplo: `--ast`
+
+```text
+$ echo 'int main() { int r = 1 + 2 * 3; print(r); return 0; }' | ./build/compilador --ast
+
+Analise sintatica concluida com sucesso.
+Programa @1
+  Funcao main (int) @1
+    -
+    Bloco @1
+      DeclVar r (int) @1
+        Binario + (int) @1
+          LitInt 1 (int) @1
+          Binario * (int) @1
+            LitInt 2 (int) @1
+            LitInt 3 (int) @1
+      Print @1
+        Id r (int) @1
+      Return @1
+        LitInt 0 (int) @1
+```
+
+A precedência aparece na forma da árvore: o `*` fica abaixo do `+`, então é avaliado primeiro.

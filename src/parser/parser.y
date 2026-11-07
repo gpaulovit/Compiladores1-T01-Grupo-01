@@ -1,6 +1,3 @@
-/* FGA0003 - Compiladores 1 */
-/* Engenharia de Software - Universidade de Brasília (UnB) */
-/* Fase Sintática e Semântica - Analisador do Mini-C */
 
 %{
 #include <stdio.h>

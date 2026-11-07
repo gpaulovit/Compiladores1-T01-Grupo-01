@@ -1,6 +1,3 @@
-/* FGA0003 - Compiladores 1 */
-/* Driver de depuração do analisador léxico: imprime cada token reconhecido,
- * sem passar pelo parser. Uso: make lex-debug && ./build/lex_debug < arquivo.txt */
 
 #include <stdio.h>
 #include "y.tab.h"

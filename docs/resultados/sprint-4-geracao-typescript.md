@@ -8,9 +8,9 @@ Implementar a geração de código TypeScript para o subconjunto Mini-C desenvol
 
 ## Alterações
 
-- Criação de `src/gerador_ts.h` e `src/gerador_ts.c`, responsáveis por percorrer a AST e emitir código TypeScript.
+- Criação de `src/gerador/gerador_ts.h` e `src/gerador/gerador_ts.c`, responsáveis por percorrer a AST e emitir código TypeScript.
 - Integração do gerador ao ponto de entrada em `src/main.c`, disponibilizando a opção `./build/compilador --ts`.
-- Ajustes em `src/parser.y` para preservar a AST e evitar mensagens de análise sintática na saída TypeScript.
+- Ajustes em `src/parser/parser.y` para preservar a AST e evitar mensagens de análise sintática na saída TypeScript.
 - Atualização do `Makefile` para compilar o novo módulo e executar os testes automatizados do gerador.
 - Criação de casos de teste para funções, declarações, expressões, divisão inteira, operadores lógicos, estruturas de controle e função `main`.
 

@@ -1,7 +1,7 @@
 # Sprint 3 — AST & Semântica Inicial
 
 **Período:** 14/10/2026 – 25/10/2026 
-**Status:** Em andamento
+**Status:** Concluído, com atraso: a tabela de símbolos e a análise semântica entraram no `main` em 22/10 e 27/10, e a AST em 03/11 (ver [Resultados da Sprint 3](../resultados/sprint-3.md)).
 
 ## Ponto de partida
 
@@ -41,8 +41,8 @@ A tabela de símbolos (B) não depende de nenhuma outra frente e pode começar n
 
 ## Principais Entregas
 
-- `src/ast.h` e `src/ast.c`, com a AST construída pelo `parser.y` e impressa com `--ast`.
-- `src/symtab.h` e `src/symtab.c`, com pilha de escopos e testes unitários.
+- `src/ast/ast.h` e `src/ast/ast.c`, com a AST construída pelo `parser.y` e impressa com `--ast`.
+- `src/symbols/symtab.h` e `src/symbols/symtab.c`, com pilha de escopos e testes unitários.
 - Passagem semântica detectando, com o número da linha:
   - identificador não declarado;
   - redeclaração;
